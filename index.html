@@ -2,1793 +2,329 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>科學文章剖析 · 解析集</title>
 <style>
 :root{
-  --bg:#fafaf7;
-  --paper:#ffffff;
-  --ink:#1f2328;
-  --muted:#6b7280;
-  --line:#e5e7eb;
-  --accent:#0f766e;
-  --accent-soft:#ecfdf5;
-  --note:#f8fafc;
-  --ans:#b45309;
-  --sidebar-w:280px;
+--bg:#fafaf7;--card:#fff;--ink:#1f2328;--sub:#6b7280;--line:#e5e7eb;
+--ac:#0f766e;--ac2:#ecfdf5;--ans:#b45309;--note:#f8fafc;--sb:280px;
 }
-*{box-sizing:border-box}
+*{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{
-  margin:0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", "Helvetica Neue", Arial, sans-serif;
-  color:var(--ink);
-  background:var(--bg);
-  line-height:1.75;
-  font-size:16px;
-}
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Noto Sans TC",sans-serif;
+color:var(--ink);background:var(--bg);line-height:1.75;font-size:16px}
+a{color:var(--ac);text-decoration:none}
 
-.layout{display:flex;min-height:100vh}
+/* ── NAV BAR (mobile) ── */
+.topbar{
+display:none;position:sticky;top:0;z-index:100;
+background:var(--card);border-bottom:1px solid var(--line);
+padding:10px 16px;gap:10px;align-items:center;
+}
+.topbar select{
+flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:6px;
+font-size:14px;background:#fff;color:var(--ink);
+-webkit-appearance:none;appearance:none;
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+background-repeat:no-repeat;background-position:right 10px center;
+padding-right:28px;
+}
+.topbar .nav-btn{
+width:36px;height:36px;border:1px solid var(--line);border-radius:6px;
+background:var(--card);color:var(--sub);font-size:18px;cursor:pointer;
+display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.topbar .nav-btn:active{background:var(--ac2)}
+.topbar .counter{font-size:12px;color:var(--sub);white-space:nowrap;min-width:42px;text-align:center}
 
-aside.sidebar{
-  width:var(--sidebar-w);
-  border-right:1px solid var(--line);
-  background:var(--paper);
-  position:sticky;top:0;height:100vh;
-  overflow-y:auto;
-  padding:24px 16px;
-  flex-shrink:0;
+/* ── SIDEBAR (desktop) ── */
+.sidebar{
+position:fixed;top:0;left:0;width:var(--sb);height:100vh;
+background:var(--card);border-right:1px solid var(--line);
+display:flex;flex-direction:column;z-index:50;
 }
-.sidebar h1{
-  font-size:16px;
-  margin:0 0 16px 4px;
-  letter-spacing:.02em;
-  color:var(--ink);
-  font-weight:600;
+.sb-head{padding:20px 16px 12px;border-bottom:1px solid var(--line)}
+.sb-head h1{font-size:15px;font-weight:600;margin-bottom:4px}
+.sb-head p{font-size:11px;color:var(--sub)}
+.sb-search{
+display:block;width:calc(100% - 32px);margin:10px 16px;padding:7px 10px;
+border:1px solid var(--line);border-radius:5px;font-size:13px;background:#fff;
 }
-.sidebar .subtitle{font-size:12px;color:var(--muted);margin:-10px 0 18px 4px}
-.sidebar .search{
-  width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:6px;
-  font-size:13px;margin-bottom:14px;background:#fff;color:var(--ink);
+.sb-search:focus{outline:none;border-color:var(--ac)}
+.sb-list{flex:1;overflow-y:auto;padding:6px 8px}
+.sl{
+display:block;padding:7px 10px;border-radius:5px;font-size:13px;
+color:var(--ink);line-height:1.4;border-left:2px solid transparent;
+margin-bottom:1px;
 }
-.sidebar .search:focus{outline:none;border-color:var(--accent)}
-.sidebar ul{list-style:none;margin:0;padding:0;counter-reset:ep}
-.sidebar li{counter-increment:ep;margin:0}
-.sidebar li a{
-  display:block;padding:6px 10px;border-radius:5px;
-  font-size:13.5px;color:var(--ink);line-height:1.45;
-  border-left:2px solid transparent;
-}
-.sidebar li a::before{
-  content: counter(ep,decimal-leading-zero) ".\2003";
-  color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px;
-}
-.sidebar li a:hover{background:var(--accent-soft);text-decoration:none;border-left-color:var(--accent)}
-.sidebar li a.active{background:var(--accent-soft);border-left-color:var(--accent);color:var(--accent)}
+.sl:hover{background:var(--ac2);text-decoration:none}
+.sl.active{background:var(--ac2);border-left-color:var(--ac);color:var(--ac);font-weight:500}
 
-main.content{flex:1;padding:40px 48px;max-width:860px;margin:0 auto}
+/* ── MAIN ── */
+.main{margin-left:var(--sb);padding:32px 40px;max-width:820px}
 
-#top{display:block;height:0;overflow:hidden}
+/* ── EPISODE CARD ── */
+.ep{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:24px 28px}
+.ep-label{
+display:inline-block;font-size:11px;letter-spacing:.1em;
+color:var(--ac);background:var(--ac2);padding:2px 10px;border-radius:99px;
+font-weight:600;margin-bottom:8px;
+}
+.ep h2{font-size:19px;font-weight:600;line-height:1.4;margin-bottom:16px;
+padding-bottom:14px;border-bottom:1px solid var(--line)}
 
-.intro{
-  margin:0 0 40px;padding:24px 28px;
-  background:var(--paper);border:1px solid var(--line);border-radius:8px;
-}
-.intro h1{margin:0 0 6px;font-size:24px;letter-spacing:.02em}
-.intro p{margin:0;color:var(--muted);font-size:14px}
-
-.episode{
-  background:var(--paper);
-  border:1px solid var(--line);
-  border-radius:8px;
-  padding:28px 32px;
-  margin-bottom:28px;
-  scroll-margin-top:20px;
-}
-.ep-head{margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line)}
-.ep-num{
-  display:inline-block;font-size:11px;letter-spacing:.12em;
-  color:var(--accent);background:var(--accent-soft);
-  padding:3px 10px;border-radius:999px;font-weight:600;
-  margin-bottom:8px;
-}
-.ep-head h2{margin:0;font-size:20px;line-height:1.4;font-weight:600}
-
-.ep-body{}
-.qa{
-  margin:20px 0;padding:16px 20px;
-  background:var(--note);border-left:3px solid var(--accent);
-  border-radius:4px;
-}
+.qa{margin:16px 0;padding:14px 18px;background:var(--note);
+border-left:3px solid var(--ac);border-radius:4px}
 .qa:first-child{margin-top:0}
-.qa-head{
-  font-size:15px;font-weight:600;margin:0 0 10px;
-  color:var(--ink);letter-spacing:.01em;
-}
-.ans{
-  display:inline-block;padding:0 8px;
-  background:#fef3c7;color:var(--ans);
-  border-radius:3px;font-weight:700;
-}
-.qa p{margin:6px 0;font-size:14.5px;line-height:1.8}
-.qa p.note{color:#374151}
-.lbl{font-weight:600;color:var(--accent);margin-right:2px}
+.qh{font-size:14.5px;font-weight:600;margin-bottom:8px}
+.ans{display:inline-block;padding:0 7px;background:#fef3c7;color:var(--ans);
+border-radius:3px;font-weight:700}
+.qa p{margin:5px 0;font-size:14px;line-height:1.8}
+.qa p.n{color:#374151}
+.l{color:var(--ac);margin-right:2px}
 
-.top-link{
-  display:inline-block;margin-top:14px;font-size:12px;color:var(--muted);
-}
-.top-link:hover{color:var(--accent)}
+/* ── SWIPE HINT ── */
+.swipe-hint{display:none;text-align:center;padding:16px;color:var(--sub);font-size:13px}
 
-@media (max-width: 900px){
-  .layout{flex-direction:column}
-  aside.sidebar{width:100%;height:auto;position:static;border-right:none;border-bottom:1px solid var(--line);max-height:240px}
-  main.content{padding:24px 20px}
-  .episode{padding:20px 18px}
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+.sidebar{display:none}
+.topbar{display:flex}
+.main{margin-left:0;padding:16px 14px}
+.ep{padding:18px 16px}
+.swipe-hint{display:block}
+.qa{padding:12px 14px}
 }
 </style>
 </head>
-<body id="top">
-<div class="layout">
-  <aside class="sidebar">
-    <h1>科學文章剖析</h1>
-    <div class="subtitle">解析集　·　74　回</div>
-    <input type="text" class="search" id="searchBox" placeholder="搜尋標題…">
-    <ul id="menuList">
-<li><a href="#ep-01">🪲 消失的玉米葉──秋行軍蟲入侵記</a></li>
-<li><a href="#ep-02">🦗 綠色小蟲的大軍──沙漠飛蝗的祕密</a></li>
-<li><a href="#ep-03">💧 水會跑去哪裡？──滲透的祕密</a></li>
-<li><a href="#ep-04">🧬 細胞裡的魔法師──幹細胞的祕密任務</a></li>
-<li><a href="#ep-05">☕ 泡奶茶也有科學──誰的茶比較香？</a></li>
-<li><a href="#ep-06">🍍 讓牛排變軟的祕密──鳳梨酵素的魔法！</a></li>
-<li><a href="#ep-07">🥑 窮人的奶油──酪梨的營養祕密</a></li>
-<li><a href="#ep-08">❤️ 心臟的隱形殺手──二尖瓣的祕密</a></li>
-<li><a href="#ep-09">🧠 被誤會的神祕器官──闌尾的真正任務</a></li>
-<li><a href="#ep-10">🧬 痘痘是怎麼形成的？</a></li>
-<li><a href="#ep-11">🪳 小強為何這麼強──蟑螂的生存祕密</a></li>
-<li><a href="#ep-12">🧊 漸凍症──神經退化的祕密</a></li>
-<li><a href="#ep-13">🍓 聞到的味覺──原來香氣也能影響味道！</a></li>
-<li><a href="#ep-14">🐪 沙漠之舟的神祕絕活──駱駝的生存智慧</a></li>
-<li><a href="#ep-15">🍞 減重新風潮──低GI飲食真的比較健康嗎？</a></li>
-<li><a href="#ep-16">🐴 神奇的海馬──爸爸懷孕的祕密！</a></li>
-<li><a href="#ep-17">🌿 從一塊馬鈴薯長出新生命──組織培養的祕密！</a></li>
-<li><a href="#ep-18">🥔 發芽的蔬果能吃嗎？──從馬鈴薯談起！</a></li>
-<li><a href="#ep-19">👑 血友病的祕密──藏在皇室基因裡的故事</a></li>
-<li><a href="#ep-20">👶 三個人的基因？──神奇的「粒線體捐贈」新生命</a></li>
-<li><a href="#ep-21">🌾 育種──人類改變物種的力量</a></li>
-<li><a href="#ep-22">👩‍👧 靠「媽」的母系遺傳──藏在我們身體裡媽媽記號</a></li>
-<li><a href="#ep-23">🦖 恐龍有羽毛？──化石裡藏的祕密</a></li>
-<li><a href="#ep-24">🐀 與眾不同的哺乳動物──地底王國的裸鼴鼠！</a></li>
-<li><a href="#ep-25">🐜 切葉蟻與牠的農場──蟻巢裡的農夫祕密！</a></li>
-<li><a href="#ep-26">🐞 不靠農藥也能打敗害蟲？──生物防治的祕密！</a></li>
-<li><a href="#ep-27">🐢 該何去何從的海龜──人類行為，改變了牠的命運</a></li>
-<li><a href="#ep-28">🌎 地球的圓周有多長？──兩座城市的太陽祕密</a></li>
-<li><a href="#ep-29">😷 病毒防疫大作戰──口罩真的能擋住病毒嗎？</a></li>
-<li><a href="#ep-30">🥛 三聚氰胺知多少──毒奶粉事件的化學真相！</a></li>
-<li><a href="#ep-31">💧 看不見的危害──結冰水與寶特瓶的祕密</a></li>
-<li><a href="#ep-32">🍬 糖是怎麼做出來？──從甘蔗到白糖的祕密旅程！</a></li>
-<li><a href="#ep-33">🎧 口罩會吃掉聲音嗎？──聽得見與聽不見的祕密！</a></li>
-<li><a href="#ep-34">👂 我們怎麼聽到聲音？──還有「骨頭」在幫忙！</a></li>
-<li><a href="#ep-35">🌞 為何夏天地面會「晃動」？──高溫讓光線變彎的祕密！</a></li>
-<li><a href="#ep-36">🌈 彩虹什麼形狀？──太陽、雨滴與光的祕密合作！</a></li>
-<li><a href="#ep-37">🌞 黑色塑膠球──能幫水庫「防曬」的神奇發明！</a></li>
-<li><a href="#ep-38">🌡️ 從冰到火──溫度的祕密與三位科學家的故事</a></li>
-<li><a href="#ep-39">🏡 會「呼吸」的房子──綠建築的秘密</a></li>
-<li><a href="#ep-40">🧠 神奇的表格──用「週期表」找到新發明！</a></li>
-<li><a href="#ep-41">⚫ 一張比頭髮還薄的神奇紙──石墨烯的誕生！</a></li>
-<li><a href="#ep-42">💧 神祕的白色結晶──水垢從哪裡來？又該怎麼清？</a></li>
-<li><a href="#ep-43">♻️ 不浪費一顆原子──化學家的綠色祕密</a></li>
-<li><a href="#ep-44">🍱 不開火也能熱？──神奇的自熱便當</a></li>
-<li><a href="#ep-45">🧴 亂世英雄──能殺菌的化學勇士「漂白水」</a></li>
-<li><a href="#ep-46">🧤 手中的小太陽──暖暖包的祕密！</a></li>
-<li><a href="#ep-47">🎇 仙女棒的魔法火花──化學在閃亮！</a></li>
-<li><a href="#ep-48">🌊 當大海變酸了──海洋酸化的祕密</a></li>
-<li><a href="#ep-49">🍞 麵包為什麼會膨脹？──食物裡的氣泡魔法！</a></li>
-<li><a href="#ep-50">💄 會變色的口紅膠──顏色背後的科學魔法！</a></li>
-<li><a href="#ep-51">⛰️ 石頭也會長！──鐘乳石的祕密</a></li>
-<li><a href="#ep-52">💥 肥料也會爆炸？──黎巴嫩港大爆炸的科學真相</a></li>
-<li><a href="#ep-53">👕 穿得漂亮，也能愛地球──環保時尚的祕密！</a></li>
-<li><a href="#ep-54">🌊 海上的黑色災難──油汙讓大海窒息了！</a></li>
-<li><a href="#ep-55">🦷 會變硬的魔法膠──補牙的祕密！</a></li>
-<li><a href="#ep-56">⚗️ 神奇的浮浮棒──測出水有多「鹹」！</a></li>
-<li><a href="#ep-57">🌊 深海探險家的挑戰──身體裡的氣泡祕密！</a></li>
-<li><a href="#ep-58">👟 鞋底的秘密──抓地力的科學！</a></li>
-<li><a href="#ep-59">🚄 飛一般的速度──高鐵讓台灣變小了！</a></li>
-<li><a href="#ep-60">🏢 電梯裡的魔法──為什麼我忽然變重又變輕？</a></li>
-<li><a href="#ep-61">⚛️ 太陽的力量──核能到底能不能用？</a></li>
-<li><a href="#ep-62">🚴‍♀️ 腳踏車的祕密──為什麼換檔會變輕鬆？</a></li>
-<li><a href="#ep-63">👕 會發電的衣服──奈米發電機的祕密！</a></li>
-<li><a href="#ep-64">🌎 大地變成泥漿？！──土壤液化的祕密</a></li>
-<li><a href="#ep-65">🪨 岩石奇幻國度──野柳的祕密風景</a></li>
-<li><a href="#ep-66">🌋 大屯火山的祕密──沉睡的巨人會再醒來嗎？</a></li>
-<li><a href="#ep-67">🌌 夜空的祕密──星座和黃道十二宮</a></li>
-<li><a href="#ep-68">🌠 會許願的星星──流星雨的祕密</a></li>
-<li><a href="#ep-69">🔋 手機裡的小炸彈？──鋰離子電池的祕密</a></li>
-<li><a href="#ep-70">📱 空氣中也能充電？──無線充電的祕密</a></li>
-<li><a href="#ep-71">💿 會「記憶」的磁鐵──硬碟的祕密</a></li>
-<li><a href="#ep-72">🌬️ 山那邊的熱風──焚風的祕密</a></li>
-<li><a href="#ep-73">🌫️ 灰濛濛的天空──是霧還是霾？</a></li>
-<li><a href="#ep-74">❄️ 這個冬天為什麼那麼冷？──北極振盪的祕密</a></li>
-    </ul>
-  </aside>
-  <main class="content">
-    <div class="intro">
-      <h1>科學文章剖析 · 解析集</h1>
-      <p>共 74 回，僅收錄解析。點選左側目錄可跳轉至對應回合。</p>
-    </div>
-<section class="episode" id="ep-01">
-  <header class="ep-head">
-    <span class="ep-num">第 1 回</span>
-    <h2>🪲 消失的玉米葉──秋行軍蟲入侵記</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 溫度越高，昆蟲體內的新陳代謝越快，發育所需時間越短；氣溫低時，活動與生長速度會變慢。<br>常見錯誤： 有些學生會以為「光線強」就會讓昆蟲長得快，但光線並非主要影響因素。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 六月是夏季，溫度高、繁殖快，加上成蟲可一次產下數百顆卵，因此族群數量會快速上升。<br>常見錯誤： 有學生誤以為「蟲多會吃光食物就變少」，但實際上短期內仍是呈現爆發性成長。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 化學殺蟲劑使用久了，生存下來的蟲會逐漸演化出「抗藥性」，導致藥越用越沒效；<br>蘇力菌則屬於生物防治，效果穩定且不易產生抗性。<br>常見錯誤： 以為蘇力菌「太弱」，但其實是長期效果更好。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-02">
-  <header class="ep-head">
-    <span class="ep-num">第 2 回</span>
-    <h2>🦗 綠色小蟲的大軍──沙漠飛蝗的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 群居型蝗蟲體色變黃褐色、身上有毒，是為了警告或嚇退掠食者，屬於「擬警防禦」。<br>常見錯誤： 有學生以為是「為了變漂亮吸引異性」，但蝗蟲的交配行為與體色無關。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 文章指出「降雨高、氣溫高」會刺激蝗蟲繁殖，使卵更快孵化。這兩項是主要環境因子。<br>常見錯誤： 有學生認為「空氣」或「光線」影響，但蝗蟲的成長主要受氣候條件影響。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　開放作答（參考方向）</h3>
-<p class="note"><span class="lbl">推論：</span> 暖化與極端氣候會讓蝗災更常發生。<br>防治方法：<br>定期監測蝗蟲數量與棲地變化。<br>利用衛星影像預測遷徙路線。<br>使用生物防治或環境管理減少繁殖地。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-03">
-  <header class="ep-head">
-    <span class="ep-num">第 3 回</span>
-    <h2>💧 水會跑去哪裡？──滲透的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 清水中水分子濃度高，會透過葡萄乾表皮（半透膜）進入裡面，使它膨脹；<br>糖水濃度高，水反而會被吸出，使葡萄乾變小。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>滲透作用是水分子從濃度低的地方移動到濃度高的地方。<br>清水那一邊水多糖少，所以水會進入葡萄乾；<br>糖水那一邊水少糖多，所以水從葡萄乾流出。<br>延伸觀念： 滲透是為了「平衡兩邊濃度」，而非因為葡萄乾「吸水」。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 滲透式海水淡化是利用半透膜讓水流入特殊溶液，再去除該溶質；<br>逆滲透（加壓法）則是用壓力逼水反向流動。<br>常見錯誤： 有學生誤以為逆滲透才是「自然的滲透」，其實它是「人造壓力」的結果。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考解答：</h3>
-<p>醃漬時外層糖或鹽濃度高，微生物體內水分會因滲透作用流出，使其脫水死亡，食物因此不易腐敗。<br>延伸觀念： 滲透不只發生在實驗中，也會出現在生活保存技術裡。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-04">
-  <header class="ep-head">
-    <span class="ep-num">第 4 回</span>
-    <h2>🧬 細胞裡的魔法師──幹細胞的祕密任務</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 能分裂並變成不同種類細胞的，就是幹細胞。<br>延伸觀念： 幹細胞的主要特色是「多能性」（能變化成其他細胞）。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>幹細胞能修復受損的組織、取代老化的細胞，幫助身體維持健康。<br>例如皮膚破皮後，體內的幹細胞會產生新皮膚細胞來修補。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 年紀增長後，體內幹細胞的數量會減少，修補速度變慢。<br>常見錯誤： 有些學生以為是因為「神經變慢」或「體溫影響」，其實主要與幹細胞數量有關。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>優點： 可用於器官修復、醫療再生、減少器官移植需求。<br>注意事項： 技術仍不成熟，且涉及倫理與安全問題（如細胞突變風險）。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-05">
-  <header class="ep-head">
-    <span class="ep-num">第 5 回</span>
-    <h2>☕ 泡奶茶也有科學──誰的茶比較香？</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 茶葉細胞膜是半透膜，水分子能通過進入細胞。<br>當水進入後，茶裡的色素和香氣成分會被溶出。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>熱水能促進滲透作用，幫助水進入茶葉細胞並帶出茶味；<br>如果先加牛奶，溫度較低、分子較大，會阻礙茶葉釋放香氣與色素。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 冰牛奶溫度低，滲透作用進行得非常慢，<br>因此茶味幾乎不會釋放出來。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>泡香菇： 乾香菇吸水變軟，是滲透作用使水進入細胞。<br>醃菜： 鹽水濃度高，使蔬菜中的水分滲出，達到保存效果。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-06">
-  <header class="ep-head">
-    <span class="ep-num">第 6 回</span>
-    <h2>🍍 讓牛排變軟的祕密──鳳梨酵素的魔法！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 研究指出鳳梨酵素在中性或偏鹼性的環境（pH 6.8～9.0）下、<br>25～40℃ 時活性最佳。夏天約 30℃，正好符合這個條件。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>人體中負責分解蛋白質的酵素有：<br>胃液中的胃蛋白酶<br>小腸與胰臟分泌的胰蛋白酶、胰凝乳酶<br>它們的功能都與鳳梨酵素相似，能將蛋白質分解成胺基酸。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 鳳梨酵素的活性範圍廣，在酸性（pH 4.6）到鹼性（pH 9.5）環境下都能作用，<br>因此能在胃酸中短暫存活，進入小腸後繼續發揮作用。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>例子1： 木瓜酵素（常用來嫩化肉質）<br>例子2： 洗衣粉酵素（分解衣服上的油脂或蛋白污漬）<br>例子3： 鳳梨酵素膠囊（幫助消化）</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-07">
-  <header class="ep-head">
-    <span class="ep-num">第 7 回</span>
-    <h2>🥑 窮人的奶油──酪梨的營養祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 脂溶性維生素（如維生素A、D、E、K）需要油脂幫助吸收。<br>堅果含有健康的不飽和脂肪酸，和酪梨一起吃能提升吸收率。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>酪梨採收時還沒完全成熟，果肉中的酵素會在室溫下持續作用，<br>幫助果肉變軟、香氣產生。如果太早放入冰箱，溫度太低會讓酵素停止活動，<br>導致果實無法成熟、吃起來又硬又澀。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　參考方向：</h3>
-<p>酪梨的含糖量很低，主要成分是脂肪與膳食纖維，<br>能延緩血糖上升、增加飽足感，糖尿病患者可以適量食用，<br>但因為熱量高，要注意不要吃太多。</p>
-<p>這樣一來，小學高年級學生能從「酪梨」這個生活例子理解：<br>食物中有不同種類的養分（醣類、脂肪、蛋白質）<br>酵素與成熟的關係<br>飲食控制與健康概念</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-08">
-  <header class="ep-head">
-    <span class="ep-num">第 8 回</span>
-    <h2>❤️ 心臟的隱形殺手──二尖瓣的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 靜脈中有瓣膜，能防止血液因重力而倒流，幫助血液順利回到心臟。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>血液在心臟收縮時若二尖瓣關不緊，部分血液會倒流到左心房，<br>導致心臟需要更用力地工作，長期可能造成心臟擴大或衰竭。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">解釋：</span> 當口腔發炎時，細菌可經由血液循環進入全身，<br>若附著在受損的二尖瓣上，就可能造成感染性心內膜炎。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>維持良好口腔衛生，預防細菌入侵。<br>定期健康檢查與心臟超音波追蹤。<br>避免過度壓力與熬夜，保持良好作息。<br>有症狀時及早就醫。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-09">
-  <header class="ep-head">
-    <span class="ep-num">第 9 回</span>
-    <h2>🧠 被誤會的神祕器官──闌尾的真正任務</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
+<body>
 
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
+<nav class="topbar">
+<button class="nav-btn" id="prevBtn" aria-label="上一回">‹</button>
+<select id="epSelect">
+<option value="0">🪲 消失的玉米葉──秋行軍蟲入侵記</option>
+<option value="1">🦗 綠色小蟲的大軍──沙漠飛蝗的祕密</option>
+<option value="2">💧 水會跑去哪裡？──滲透的祕密</option>
+<option value="3">🧬 細胞裡的魔法師──幹細胞的祕密任務</option>
+<option value="4">☕ 泡奶茶也有科學──誰的茶比較香？</option>
+<option value="5">🍍 讓牛排變軟的祕密──鳳梨酵素的魔法！</option>
+<option value="6">🥑 窮人的奶油──酪梨的營養祕密</option>
+<option value="7">❤️ 心臟的隱形殺手──二尖瓣的祕密</option>
+<option value="8">🧠 被誤會的神祕器官──闌尾的真正任務</option>
+<option value="9">🧬 痘痘是怎麼形成的？</option>
+<option value="10">🪳 小強為何這麼強──蟑螂的生存祕密</option>
+<option value="11">🧊 漸凍症──神經退化的祕密</option>
+<option value="12">🍓 聞到的味覺──原來香氣也能影響味道！</option>
+<option value="13">🐪 沙漠之舟的神祕絕活──駱駝的生存智慧</option>
+<option value="14">🍞 減重新風潮──低GI飲食真的比較健康嗎？</option>
+<option value="15">🐴 神奇的海馬──爸爸懷孕的祕密！</option>
+<option value="16">🌿 從一塊馬鈴薯長出新生命──組織培養的祕密！</option>
+<option value="17">🥔 發芽的蔬果能吃嗎？──從馬鈴薯談起！</option>
+<option value="18">👑 血友病的祕密──藏在皇室基因裡的故事</option>
+<option value="19">👶 三個人的基因？──神奇的「粒線體捐贈」新生命</option>
+<option value="20">🌾 育種──人類改變物種的力量</option>
+<option value="21">👩‍👧 靠「媽」的母系遺傳──藏在我們身體裡媽媽記號</option>
+<option value="22">🦖 恐龍有羽毛？──化石裡藏的祕密</option>
+<option value="23">🐀 與眾不同的哺乳動物──地底王國的裸鼴鼠！</option>
+<option value="24">🐜 切葉蟻與牠的農場──蟻巢裡的農夫祕密！</option>
+<option value="25">🐞 不靠農藥也能打敗害蟲？──生物防治的祕密！</option>
+<option value="26">🐢 該何去何從的海龜──人類行為，改變了牠的命運</option>
+<option value="27">🌎 地球的圓周有多長？──兩座城市的太陽祕密</option>
+<option value="28">😷 病毒防疫大作戰──口罩真的能擋住病毒嗎？</option>
+<option value="29">🥛 三聚氰胺知多少──毒奶粉事件的化學真相！</option>
+<option value="30">💧 看不見的危害──結冰水與寶特瓶的祕密</option>
+<option value="31">🍬 糖是怎麼做出來？──從甘蔗到白糖的祕密旅程！</option>
+<option value="32">🎧 口罩會吃掉聲音嗎？──聽得見與聽不見的祕密！</option>
+<option value="33">👂 我們怎麼聽到聲音？──還有「骨頭」在幫忙！</option>
+<option value="34">🌞 為何夏天地面會「晃動」？──高溫讓光線變彎的祕密！</option>
+<option value="35">🌈 彩虹什麼形狀？──太陽、雨滴與光的祕密合作！</option>
+<option value="36">🌞 黑色塑膠球──能幫水庫「防曬」的神奇發明！</option>
+<option value="37">🌡️ 從冰到火──溫度的祕密與三位科學家的故事</option>
+<option value="38">🏡 會「呼吸」的房子──綠建築的秘密</option>
+<option value="39">🧠 神奇的表格──用「週期表」找到新發明！</option>
+<option value="40">⚫ 一張比頭髮還薄的神奇紙──石墨烯的誕生！</option>
+<option value="41">💧 神祕的白色結晶──水垢從哪裡來？又該怎麼清？</option>
+<option value="42">♻️ 不浪費一顆原子──化學家的綠色祕密</option>
+<option value="43">🍱 不開火也能熱？──神奇的自熱便當</option>
+<option value="44">🧴 亂世英雄──能殺菌的化學勇士「漂白水」</option>
+<option value="45">🧤 手中的小太陽──暖暖包的祕密！</option>
+<option value="46">🎇 仙女棒的魔法火花──化學在閃亮！</option>
+<option value="47">🌊 當大海變酸了──海洋酸化的祕密</option>
+<option value="48">🍞 麵包為什麼會膨脹？──食物裡的氣泡魔法！</option>
+<option value="49">💄 會變色的口紅膠──顏色背後的科學魔法！</option>
+<option value="50">⛰️ 石頭也會長！──鐘乳石的祕密</option>
+<option value="51">💥 肥料也會爆炸？──黎巴嫩港大爆炸的科學真相</option>
+<option value="52">👕 穿得漂亮，也能愛地球──環保時尚的祕密！</option>
+<option value="53">🌊 海上的黑色災難──油汙讓大海窒息了！</option>
+<option value="54">🦷 會變硬的魔法膠──補牙的祕密！</option>
+<option value="55">⚗️ 神奇的浮浮棒──測出水有多「鹹」！</option>
+<option value="56">🌊 深海探險家的挑戰──身體裡的氣泡祕密！</option>
+<option value="57">👟 鞋底的秘密──抓地力的科學！</option>
+<option value="58">🚄 飛一般的速度──高鐵讓台灣變小了！</option>
+<option value="59">🏢 電梯裡的魔法──為什麼我忽然變重又變輕？</option>
+<option value="60">⚛️ 太陽的力量──核能到底能不能用？</option>
+<option value="61">🚴‍♀️ 腳踏車的祕密──為什麼換檔會變輕鬆？</option>
+<option value="62">👕 會發電的衣服──奈米發電機的祕密！</option>
+<option value="63">🌎 大地變成泥漿？！──土壤液化的祕密</option>
+<option value="64">🪨 岩石奇幻國度──野柳的祕密風景</option>
+<option value="65">🌋 大屯火山的祕密──沉睡的巨人會再醒來嗎？</option>
+<option value="66">🌌 夜空的祕密──星座和黃道十二宮</option>
+<option value="67">🌠 會許願的星星──流星雨的祕密</option>
+<option value="68">🔋 手機裡的小炸彈？──鋰離子電池的祕密</option>
+<option value="69">📱 空氣中也能充電？──無線充電的祕密</option>
+<option value="70">💿 會「記憶」的磁鐵──硬碟的祕密</option>
+<option value="71">🌬️ 山那邊的熱風──焚風的祕密</option>
+<option value="72">🌫️ 灰濛濛的天空──是霧還是霾？</option>
+<option value="73">❄️ 這個冬天為什麼那麼冷？──北極振盪的祕密</option>
+</select>
+<button class="nav-btn" id="nextBtn" aria-label="下一回">›</button>
+</nav>
 
+<aside class="sidebar">
+<div class="sb-head">
+<h1>科學文章剖析</h1>
+<p>解析集 · 74 回</p>
 </div>
-<div class="qa"><h3 class="qa-head">第 3 題　參考解答：</h3>
+<input type="text" class="sb-search" id="sbSearch" placeholder="搜尋…">
+<div class="sb-list" id="sbList">
+<a href="#" data-ep="0" class="sl">🪲 消失的玉米葉──秋行軍蟲入侵記</a>
+<a href="#" data-ep="1" class="sl">🦗 綠色小蟲的大軍──沙漠飛蝗的祕密</a>
+<a href="#" data-ep="2" class="sl">💧 水會跑去哪裡？──滲透的祕密</a>
+<a href="#" data-ep="3" class="sl">🧬 細胞裡的魔法師──幹細胞的祕密任務</a>
+<a href="#" data-ep="4" class="sl">☕ 泡奶茶也有科學──誰的茶比較香？</a>
+<a href="#" data-ep="5" class="sl">🍍 讓牛排變軟的祕密──鳳梨酵素的魔法！</a>
+<a href="#" data-ep="6" class="sl">🥑 窮人的奶油──酪梨的營養祕密</a>
+<a href="#" data-ep="7" class="sl">❤️ 心臟的隱形殺手──二尖瓣的祕密</a>
+<a href="#" data-ep="8" class="sl">🧠 被誤會的神祕器官──闌尾的真正任務</a>
+<a href="#" data-ep="9" class="sl">🧬 痘痘是怎麼形成的？</a>
+<a href="#" data-ep="10" class="sl">🪳 小強為何這麼強──蟑螂的生存祕密</a>
+<a href="#" data-ep="11" class="sl">🧊 漸凍症──神經退化的祕密</a>
+<a href="#" data-ep="12" class="sl">🍓 聞到的味覺──原來香氣也能影響味道！</a>
+<a href="#" data-ep="13" class="sl">🐪 沙漠之舟的神祕絕活──駱駝的生存智慧</a>
+<a href="#" data-ep="14" class="sl">🍞 減重新風潮──低GI飲食真的比較健康嗎？</a>
+<a href="#" data-ep="15" class="sl">🐴 神奇的海馬──爸爸懷孕的祕密！</a>
+<a href="#" data-ep="16" class="sl">🌿 從一塊馬鈴薯長出新生命──組織培養的祕密！</a>
+<a href="#" data-ep="17" class="sl">🥔 發芽的蔬果能吃嗎？──從馬鈴薯談起！</a>
+<a href="#" data-ep="18" class="sl">👑 血友病的祕密──藏在皇室基因裡的故事</a>
+<a href="#" data-ep="19" class="sl">👶 三個人的基因？──神奇的「粒線體捐贈」新生命</a>
+<a href="#" data-ep="20" class="sl">🌾 育種──人類改變物種的力量</a>
+<a href="#" data-ep="21" class="sl">👩‍👧 靠「媽」的母系遺傳──藏在我們身體裡媽媽記號</a>
+<a href="#" data-ep="22" class="sl">🦖 恐龍有羽毛？──化石裡藏的祕密</a>
+<a href="#" data-ep="23" class="sl">🐀 與眾不同的哺乳動物──地底王國的裸鼴鼠！</a>
+<a href="#" data-ep="24" class="sl">🐜 切葉蟻與牠的農場──蟻巢裡的農夫祕密！</a>
+<a href="#" data-ep="25" class="sl">🐞 不靠農藥也能打敗害蟲？──生物防治的祕密！</a>
+<a href="#" data-ep="26" class="sl">🐢 該何去何從的海龜──人類行為，改變了牠的命運</a>
+<a href="#" data-ep="27" class="sl">🌎 地球的圓周有多長？──兩座城市的太陽祕密</a>
+<a href="#" data-ep="28" class="sl">😷 病毒防疫大作戰──口罩真的能擋住病毒嗎？</a>
+<a href="#" data-ep="29" class="sl">🥛 三聚氰胺知多少──毒奶粉事件的化學真相！</a>
+<a href="#" data-ep="30" class="sl">💧 看不見的危害──結冰水與寶特瓶的祕密</a>
+<a href="#" data-ep="31" class="sl">🍬 糖是怎麼做出來？──從甘蔗到白糖的祕密旅程！</a>
+<a href="#" data-ep="32" class="sl">🎧 口罩會吃掉聲音嗎？──聽得見與聽不見的祕密！</a>
+<a href="#" data-ep="33" class="sl">👂 我們怎麼聽到聲音？──還有「骨頭」在幫忙！</a>
+<a href="#" data-ep="34" class="sl">🌞 為何夏天地面會「晃動」？──高溫讓光線變彎的祕密！</a>
+<a href="#" data-ep="35" class="sl">🌈 彩虹什麼形狀？──太陽、雨滴與光的祕密合作！</a>
+<a href="#" data-ep="36" class="sl">🌞 黑色塑膠球──能幫水庫「防曬」的神奇發明！</a>
+<a href="#" data-ep="37" class="sl">🌡️ 從冰到火──溫度的祕密與三位科學家的故事</a>
+<a href="#" data-ep="38" class="sl">🏡 會「呼吸」的房子──綠建築的秘密</a>
+<a href="#" data-ep="39" class="sl">🧠 神奇的表格──用「週期表」找到新發明！</a>
+<a href="#" data-ep="40" class="sl">⚫ 一張比頭髮還薄的神奇紙──石墨烯的誕生！</a>
+<a href="#" data-ep="41" class="sl">💧 神祕的白色結晶──水垢從哪裡來？又該怎麼清？</a>
+<a href="#" data-ep="42" class="sl">♻️ 不浪費一顆原子──化學家的綠色祕密</a>
+<a href="#" data-ep="43" class="sl">🍱 不開火也能熱？──神奇的自熱便當</a>
+<a href="#" data-ep="44" class="sl">🧴 亂世英雄──能殺菌的化學勇士「漂白水」</a>
+<a href="#" data-ep="45" class="sl">🧤 手中的小太陽──暖暖包的祕密！</a>
+<a href="#" data-ep="46" class="sl">🎇 仙女棒的魔法火花──化學在閃亮！</a>
+<a href="#" data-ep="47" class="sl">🌊 當大海變酸了──海洋酸化的祕密</a>
+<a href="#" data-ep="48" class="sl">🍞 麵包為什麼會膨脹？──食物裡的氣泡魔法！</a>
+<a href="#" data-ep="49" class="sl">💄 會變色的口紅膠──顏色背後的科學魔法！</a>
+<a href="#" data-ep="50" class="sl">⛰️ 石頭也會長！──鐘乳石的祕密</a>
+<a href="#" data-ep="51" class="sl">💥 肥料也會爆炸？──黎巴嫩港大爆炸的科學真相</a>
+<a href="#" data-ep="52" class="sl">👕 穿得漂亮，也能愛地球──環保時尚的祕密！</a>
+<a href="#" data-ep="53" class="sl">🌊 海上的黑色災難──油汙讓大海窒息了！</a>
+<a href="#" data-ep="54" class="sl">🦷 會變硬的魔法膠──補牙的祕密！</a>
+<a href="#" data-ep="55" class="sl">⚗️ 神奇的浮浮棒──測出水有多「鹹」！</a>
+<a href="#" data-ep="56" class="sl">🌊 深海探險家的挑戰──身體裡的氣泡祕密！</a>
+<a href="#" data-ep="57" class="sl">👟 鞋底的秘密──抓地力的科學！</a>
+<a href="#" data-ep="58" class="sl">🚄 飛一般的速度──高鐵讓台灣變小了！</a>
+<a href="#" data-ep="59" class="sl">🏢 電梯裡的魔法──為什麼我忽然變重又變輕？</a>
+<a href="#" data-ep="60" class="sl">⚛️ 太陽的力量──核能到底能不能用？</a>
+<a href="#" data-ep="61" class="sl">🚴‍♀️ 腳踏車的祕密──為什麼換檔會變輕鬆？</a>
+<a href="#" data-ep="62" class="sl">👕 會發電的衣服──奈米發電機的祕密！</a>
+<a href="#" data-ep="63" class="sl">🌎 大地變成泥漿？！──土壤液化的祕密</a>
+<a href="#" data-ep="64" class="sl">🪨 岩石奇幻國度──野柳的祕密風景</a>
+<a href="#" data-ep="65" class="sl">🌋 大屯火山的祕密──沉睡的巨人會再醒來嗎？</a>
+<a href="#" data-ep="66" class="sl">🌌 夜空的祕密──星座和黃道十二宮</a>
+<a href="#" data-ep="67" class="sl">🌠 會許願的星星──流星雨的祕密</a>
+<a href="#" data-ep="68" class="sl">🔋 手機裡的小炸彈？──鋰離子電池的祕密</a>
+<a href="#" data-ep="69" class="sl">📱 空氣中也能充電？──無線充電的祕密</a>
+<a href="#" data-ep="70" class="sl">💿 會「記憶」的磁鐵──硬碟的祕密</a>
+<a href="#" data-ep="71" class="sl">🌬️ 山那邊的熱風──焚風的祕密</a>
+<a href="#" data-ep="72" class="sl">🌫️ 灰濛濛的天空──是霧還是霾？</a>
+<a href="#" data-ep="73" class="sl">❄️ 這個冬天為什麼那麼冷？──北極振盪的祕密</a>
+</div>
+</aside>
 
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>多吃蔬菜與優酪乳，幫助腸道菌平衡。<br>注意衛生、勤洗手，避免病菌感染。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-10">
-  <header class="ep-head">
-    <span class="ep-num">第 10 回</span>
-    <h2>🧬 痘痘是怎麼形成的？</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「受感染細胞會分泌發炎因子，使血管擴張，帶來白血球……」<br>說明： 組織液是從擴張的血管滲出，帶有白血球與生長因子。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為手上的細菌可能進入破口，使感染更深入皮下；<br>這會導致二次感染或留下疤痕，嚴重者甚至引起蜂窩性組織炎。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「感染時間一長，淋巴球也會出動參與免疫防禦……」<br>說明： 淋巴球屬於第三道防線，會破壞受感染細胞並產生抗體。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>保持清潔，減少毛孔阻塞。<br>規律作息、少吃油炸甜食，避免皮脂過多。<br>使用防曬乳，減少紫外線引起的發炎與黑色素沉澱。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-11">
-  <header class="ep-head">
-    <span class="ep-num">第 11 回</span>
-    <h2>🪳 小強為何這麼強──蟑螂的生存祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">D</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「蟑螂主要利用腹部末端的一對尾毛，感受空氣振動。」<br>說明： 尾毛能偵測空氣變化並將訊息傳給腦部。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>蟑螂在光亮環境中警覺性提高，判斷危險反應更快，<br>因此逃跑速度比黑暗中快。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「蟑螂會分泌警告費洛蒙，其他蟑螂用觸角接收訊息。」<br>說明： 這是天生的本能行為，與螞蟻用觸角傳遞訊息相似。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>蟑螂具備高度感覺能力（偵測氣流、氣味）與協同行為。<br>可運用此原理設計防蟑方法，如：<br>使用無味氣體或氣流干擾牠的偵測系統。<br>避免留下食物氣味，減少費洛蒙吸引。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-12">
-  <header class="ep-head">
-    <span class="ep-num">第 12 回</span>
-    <h2>🧊 漸凍症──神經退化的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「病人的意識與感覺仍清楚，仍能聽見與看見。」<br>說明： 感覺神經未受損，因此仍能感受聲音與影像。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為漸凍症是運動神經元壞掉，<br>導致肌肉接收不到大腦指令；<br>但感覺神經正常，所以仍能感覺冷暖與聽見聲音。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「下運動神經元病變多從手掌或腳掌開始肌肉萎縮。」<br>說明： 無法傳遞訊號給肌肉，造成萎縮與無力。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>讓更多人了解漸凍症、願意捐款或支持病友。<br>提醒社會重視罕見疾病與生命教育。<br>鼓勵科技發展輔助設備，幫助病患溝通與生活。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-13">
-  <header class="ep-head">
-    <span class="ep-num">第 13 回</span>
-    <h2>🍓 聞到的味覺──原來香氣也能影響味道！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「氣味分子會沿著鼻腔傳到嗅覺細胞，然後傳給大腦。」<br>說明： 草莓的「香氣」是由嗅覺辨識出的，不是舌頭辨出來的。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>感冒鼻塞會使氣味分子進不去鼻腔，嗅覺細胞無法接收訊息，<br>因此雖然味蕾能感覺酸甜，但少了香氣，會覺得「食之無味」。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 缺少視覺輔助，大腦難以區分相似的味道，容易誤判。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>例：喝可樂與雪碧時若顏色一樣、鼻子塞住，會分不出差別。<br>例：看到紅色飲料時會以為是甜的，實際上可能是酸味。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-14">
-  <header class="ep-head">
-    <span class="ep-num">第 14 回</span>
-    <h2>🐪 沙漠之舟的神祕絕活──駱駝的生存智慧</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「腎臟能把尿液中的水分再回收，只留下廢物。」<br>說明： 駱駝的腎臟能高度濃縮尿液，是節水的主要器官。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>白天體溫上升能減少排汗、避免水分流失；<br>晚上再緩慢散熱，有助於節約水分並維持體溫平衡。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「呼氣時鼻孔能回收水氣。」<br>說明： 若鼻孔裂縫無法作用，蒸氣無法回收，導致失水增加。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>穿著透氣衣物、避免正午外出。<br>多補水但分次少量飲用。<br>使用毛巾降溫、讓體溫逐步散出。<br>保持環境通風，模仿「氣流降溫」原理。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-15">
-  <header class="ep-head">
-    <span class="ep-num">第 15 回</span>
-    <h2>🍞 減重新風潮──低GI飲食真的比較健康嗎？</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「白飯的GI值是84，屬於高GI食物。」<br>說明： 白飯消化快、升糖速度高。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>低GI食物吸收慢，血糖上升得比較緩，<br>能讓飽足感維持久一點，不容易餓，<br>因此能減少進食、幫助控制體重。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「血糖上升太快會引起噁心、心跳加速，嚴重可能昏迷。」<br>說明： 糖尿病患者若血糖變化劇烈，會影響身體安全。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>健康午餐設計示例：<br>主食：糙米飯（GI值低）<br>配菜：小黃瓜、花椰菜（富含纖維）<br>蛋白質：烤魚或雞胸肉（低脂高蛋白）<br>說明： 這樣的組合能延緩血糖上升並維持飽足感。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-16">
-  <header class="ep-head">
-    <span class="ep-num">第 16 回</span>
-    <h2>🐴 神奇的海馬──爸爸懷孕的祕密！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「育兒囊會形成血管網，供應氧氣與養分，也排出廢物。」<br>說明： 功能與人類的胎盤相似，都是提供營養與交換氣體的器官。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>海馬是卵生。<br>因為文章提到「雌海馬把卵注入公海馬體內，再與精子結合形成受精卵」。<br>也就是先產卵，再在體內受精。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　參考解答：</h3>
-<p>夜晚掠食者較少，能減少小海馬被吃掉的機率，<br>提高子代的存活率。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>企鵝：父母輪流孵蛋、用身體保溫。<br>青蛙：將卵產在水邊、由水草保護。<br>鱷魚：母鱷守護巢穴，幫幼鱷回到水中。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-17">
-  <header class="ep-head">
-    <span class="ep-num">第 17 回</span>
-    <h2>🌿 從一塊馬鈴薯長出新生命──組織培養的祕密！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「植物細胞具有全能性，可分化成完整個體。」<br>說明： 只有植物的已分化細胞能回復為未分化細胞並再生長。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>植物細胞具有「全能性」，能分裂出未分化細胞再形成新個體；<br>而動物的細胞多已分化完成，缺乏回復能力，因此無法再生出完整生物。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「無性生殖產生的作物基因單一，容易大規模損失。」<br>說明： 組織培養的植株基因完全相同，若病害出現，容易全體感染。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>好處：<br>可幫助修復受損器官或治療血液疾病。<br>促進醫學研究與藥物開發。<br>注意問題：<br>涉及「胚胎來源」等倫理爭議。<br>使用上需確保安全與防止濫用。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-18">
-  <header class="ep-head">
-    <span class="ep-num">第 18 回</span>
-    <h2>🥔 發芽的蔬果能吃嗎？──從馬鈴薯談起！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「馬鈴薯發芽時會產生茄鹼，加熱後也無法去除。」<br>說明： 茄鹼是一種天然毒素，食用會造成急性中毒。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>馬鈴薯在發芽時產生茄鹼，是植物的防禦物質；<br>這種毒素耐熱，不會被煮熟破壞，因此不能吃。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">說明：</span> 高溫或潮濕環境會讓馬鈴薯發芽並增加毒素，縮短保存期。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>大蒜發芽：增加含硫抗氧化物，提升免疫力。<br>豆芽菜：維生素A、膳食纖維多，低熱量健康。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-19">
-  <header class="ep-head">
-    <span class="ep-num">第 19 回</span>
-    <h2>👑 血友病的祕密──藏在皇室基因裡的故事</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「血友病是X染色體上基因異常造成的疾病。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>男性只有一條X染色體，若該X上有異常基因就會發病；<br>女性有兩條X，其中一條正常可補償，因此多為帶原者不發病。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 女帶原者與正常男性結婚時，<br>男孩有50%機率得到異常X染色體而發病。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>近親可能都帶有相同的隱性致病基因，<br>若雙方結婚，後代同時遺傳兩個異常基因的機率提高，<br>導致遺傳疾病（如血友病）更容易發生。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-20">
-  <header class="ep-head">
-    <span class="ep-num">第 20 回</span>
-    <h2>👶 三個人的基因？──神奇的「粒線體捐贈」新生命</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「粒線體只存在於卵細胞內，父親的精子只提供細胞核。」<br>說明： 因此粒線體基因只會從母親遺傳。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>寶寶的基因有三部分：<br>爸爸與媽媽：提供細胞核中的大部分基因（99.9%）。<br>捐贈媽媽：提供健康的粒線體基因（約0.1%）。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 若母親粒線體基因有缺陷，會遺傳給孩子，導致粒線體疾病。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>科學家可先進行充分的安全測試，再有限度應用。<br>政府與醫師應設立倫理審查制度。<br>尊重生命價值，同時防止技術被濫用。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-21">
-  <header class="ep-head">
-    <span class="ep-num">第 21 回</span>
-    <h2>🌾 育種──人類改變物種的力量</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「人類挑選出喜歡的個體再繁殖，就是人工選擇。」<br>說明： 農夫的挑選行為是由人主導的選擇，不是自然發生。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>天擇是由自然環境決定哪個生物能活下來；<br>人擇則是由人類挑選具有特定特徵的生物來繁殖。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">說明：</span> 長期挑選大果實個體繁殖，會讓新品種的平均果實越來越大。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>優點： 能快速改良作物、提高產量、抗病蟲害。<br>注意問題： 可能造成基因污染、生態失衡或食安疑慮。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-22">
-  <header class="ep-head">
-    <span class="ep-num">第 22 回</span>
-    <h2>👩‍👧 靠「媽」的母系遺傳──藏在我們身體裡媽媽記號</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「粒線體與葉綠體的DNA由卵子提供，屬於母系遺傳。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為受精時只有媽媽的卵子提供細胞質與粒線體，<br>而爸爸的精子只留下細胞核，所以粒線體DNA只從媽媽遺傳。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 粒線體DNA不會經歷有性生殖的基因重組，<br>可直接追蹤母系血緣關係。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「母系遺傳能由媽媽→外祖母→女兒一路相傳。」<br>說明： 祖母屬於爸爸那邊，與自己粒線體DNA不同。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-23">
-  <header class="ep-head">
-    <span class="ep-num">第 23 回</span>
-    <h2>🦖 恐龍有羽毛？──化石裡藏的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">D</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「科學家推論，最初的羽毛不是用於飛行，而是偽裝、求偶或保暖。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為在恐龍化石與琥珀中發現完整的羽毛結構，<br>證明牠們身上確實有羽毛痕跡。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">說明：</span> 琥珀中保留了羽毛與骨骼，能直接觀察恐龍外觀特徵。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>化石：可觀察生物的形狀與骨骼。<br>琥珀：能保存毛髮、羽毛或昆蟲。<br>冰層：可研究當時的氣候與動植物。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-24">
-  <header class="ep-head">
-    <span class="ep-num">第 24 回</span>
-    <h2>🐀 與眾不同的哺乳動物──地底王國的裸鼴鼠！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「裸鼴鼠生活在地底，不會飛行，靠前爪挖掘地道。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為裸鼴鼠族群有明確分工與母后制度，<br>像螞蟻或蜜蜂一樣，屬於真社會性動物。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 裸鼴鼠能在無氧環境下暫時休眠且不受損，<br>能提供研究人類缺氧治療的線索。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>了解牠的抗癌機制，<br>可能幫助人類開發新的抗老化或防癌藥物。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-25">
-  <header class="ep-head">
-    <span class="ep-num">第 25 回</span>
-    <h2>🐜 切葉蟻與牠的農場──蟻巢裡的農夫祕密！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「切葉蟻把葉片咀嚼成糊狀，在上面培養真菌作為食物。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　答案：<span class="ans">D</span></h3>
-<p class="note"><span class="lbl">說明：</span> 螞蟻提供真菌生長的環境，真菌提供螞蟻食物，雙方都受益。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">說明：</span> 鏈黴菌抑制其他真菌生長，是為了爭奪生存空間或資源，屬於競爭關係。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>蜜蜂與花：蜜蜂採花蜜、同時幫花授粉。<br>小丑魚與海葵：小丑魚得到保護，海葵吃牠帶來的食物碎屑。<br>人與腸道菌：腸道菌幫助消化，人提供穩定環境。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-26">
-  <header class="ep-head">
-    <span class="ep-num">第 26 回</span>
-    <h2>🐞 不靠農藥也能打敗害蟲？──生物防治的祕密！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「利用自然界的捕食關係控制害蟲數量。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>生物防治不用化學藥劑，能減少污染、保護其他生物與環境。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 外來物種若缺乏天敵，可能繁殖過多、破壞當地生態。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>用肥皂水或辣椒水清除害蟲。<br>利用瓢蟲、螞蟻等天敵控制蟲害。<br>理由：能保護植物，又不會污染環境。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-27">
-  <header class="ep-head">
-    <span class="ep-num">第 27 回</span>
-    <h2>🐢 該何去何從的海龜──人類行為，改變了牠的命運</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「綠蠵龜穿梭消波塊時容易受困，或小海龜被阻擋無法回海。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>塑膠袋漂浮在海面上像水母，<br>海龜誤食後會造成消化不良、腸道堵塞，甚至死亡。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">說明：</span> 生態工法能保留自然棲地、減少阻礙，<br>同時防止侵蝕與提供海龜產卵地。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>不留下垃圾、不帶走沙灘上的蛋。<br>潛水時保持距離，不觸摸或追逐海龜。<br>減少使用塑膠袋與吸管。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-28">
-  <header class="ep-head">
-    <span class="ep-num">第 28 回</span>
-    <h2>🌎 地球的圓周有多長？──兩座城市的太陽祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「他利用太陽光與影子的夾角推算地球圓周長。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為地球是球形的，兩地在地球表面位置不同，<br>太陽光照射角度也不同，所以一地有影子、一地沒有。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">D</span></h3>
-<p class="note"><span class="lbl">說明：</span> 量測愈多次能減少誤差，使平均值更接近真實數據。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>使用**衛星定位系統（GPS）**量測地球曲面。<br>利用雷射測距或地球儀模型分析。<br>使用地圖比例尺與經緯度資料計算距離。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-29">
-  <header class="ep-head">
-    <span class="ep-num">第 29 回</span>
-    <h2>😷 病毒防疫大作戰──口罩真的能擋住病毒嗎？</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「病毒是旅客，飛沫是飛機。」<br>→ 病毒藉由飛沫傳播給他人。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>外科口罩的孔洞比飛沫小，能擋住含病毒的飛沫；<br>但當飛沫乾燥後只剩病毒時，病毒顆粒太小，可能穿透。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 5微米＝5000奈米，大於500奈米孔徑，因此能被阻擋。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>外出戴口罩，防止飛沫傳播。<br>勤洗手，不讓病毒藉由手進入口鼻。<br>不亂摸臉，減少接觸傳染機會。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-30">
-  <header class="ep-head">
-    <span class="ep-num">第 30 回</span>
-    <h2>🥛 三聚氰胺知多少──毒奶粉事件的化學真相！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「檢測蛋白質是依含氮量判定，業者藉由三聚氰胺提升數值。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">說明：</span> 利用過濾器分離液體與固體，觀察沉澱物。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 冷卻後溶解度降低，三聚氰胺析出成白色沉澱。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>不購買來路不明或價格過低的食品。<br>送交衛生單位檢驗。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-31">
-  <header class="ep-head">
-    <span class="ep-num">第 31 回</span>
-    <h2>💧 看不見的危害──結冰水與寶特瓶的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「水結成冰體積變大，使瓶身膨脹、產生細微裂縫。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>高溫會讓PET塑膠分解，釋放有毒化學物質，<br>若喝下含毒水，可能造成身體不適或內分泌影響。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">說明：</span> 冰融化只是狀態改變，物質本身未改變。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>改用玻璃瓶或金屬水壺裝水。<br>不冷凍、不曝曬瓶裝水。<br>外出自備水壺，減少塑膠瓶使用。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-32">
-  <header class="ep-head">
-    <span class="ep-num">第 32 回</span>
-    <h2>🍬 糖是怎麼做出來？──從甘蔗到白糖的祕密旅程！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「蔗汁由蔗糖（溶質）與水（溶劑）混合而成。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>結晶法是利用溶液濃度變化，<br>讓溶質析出成固體，達到分離的效果。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 提高溶液濃度會加速飽和，使糖更快結晶。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>兩者都利用「蒸發水分 → 溶質析出」的原理，<br>只是前者得到糖晶體，後者得到鹽晶體。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-33">
-  <header class="ep-head">
-    <span class="ep-num">第 33 回</span>
-    <h2>🎧 口罩會吃掉聲音嗎？──聽得見與聽不見的祕密！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「口罩對高頻聲音（2000赫以上）的削弱最明顯。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為口罩阻擋部分高頻聲音，使聲音的清晰度降低，<br>聽起來就像「悶住」一樣。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">說明：</span> 控制音量與距離相同，才能比較不同口罩的影響。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>說話放慢、發音清楚。<br>搭配手勢或表情輔助。<br>面向對方說話，避免背對。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-34">
-  <header class="ep-head">
-    <span class="ep-num">第 34 回</span>
-    <h2>👂 我們怎麼聽到聲音？──還有「骨頭」在幫忙！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「聲音可透過空氣與顱骨兩種方式傳入耳朵。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為聲帶震動會讓顱骨也震動，<br>聲音能透過骨頭傳到內耳，所以仍能聽見。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 骨傳導助聽器能直接將震動傳入內耳，<br>不用經過外耳與鼓膜。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>骨傳導耳機（跑步時可聽音樂又不塞住耳朵）。<br>醫療輔具或潛水通訊設備。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-35">
-  <header class="ep-head">
-    <span class="ep-num">第 35 回</span>
-    <h2>🌞 為何夏天地面會「晃動」？──高溫讓光線變彎的祕密！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「光線在不同溫度、密度的空氣間折射，使影像扭曲。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為地表空氣溫度高、上方空氣較冷，<br>光線經過不同密度的空氣層會彎曲，<br>將天空影像折射到地面上，產生假象。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 光線進出不同介質（空氣、水）時會改變方向。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>眼鏡與放大鏡（利用折射聚焦光線）。<br>潛水鏡或望遠鏡（利用折射調整影像）。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-36">
-  <header class="ep-head">
-    <span class="ep-num">第 36 回</span>
-    <h2>🌈 彩虹什麼形狀？──太陽、雨滴與光的祕密合作！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「彩虹是光線在水滴中經折射與反射形成的。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>不同顏色的光折射角度不同，<br>紫光偏折最多、紅光最少，<br>所以紅在外、紫在內。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 要看到彩虹，太陽必須在觀察者身後，<br>因此彩虹與太陽不會同時出現在同一側。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>在晴天背對太陽用噴水器噴水。<br>在瀑布或噴泉旁觀察。<br>原理：陽光被水滴折射與反射後產生七彩光譜。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-37">
-  <header class="ep-head">
-    <span class="ep-num">第 37 回</span>
-    <h2>🌞 黑色塑膠球──能幫水庫「防曬」的神奇發明！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">D</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「塑膠球製造過程仍需消耗水與能源。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>塑膠球是中空的，裡面的空氣導熱效果差，<br>能隔絕外部熱量，使水不容易被加熱。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 棉被中的空氣層與塑膠球內的空氣一樣，<br>都能減少熱的傳導。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>雙層保溫杯、保麗龍餐盒。<br>房屋天花板中的空氣層隔熱設計。<br>冬天穿羽絨衣保暖。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-38">
-  <header class="ep-head">
-    <span class="ep-num">第 38 回</span>
-    <h2>🌡️ 從冰到火──溫度的祕密與三位科學家的故事</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「華倫海特→攝爾修斯→克爾文爵士」為時間順序。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為攝氏溫標的刻度以水的冰點與沸點為基準，<br>方便理解、容易換算，使用起來最直覺。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">說明：</span> 絕對零度是物質中不再有任何熱能的最低溫狀態。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>美國氣象新聞使用華氏（°F）。<br>教科書與溫度計常用攝氏（°C）。<br>科學實驗報告會使用克氏（K）。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-39">
-  <header class="ep-head">
-    <span class="ep-num">第 39 回</span>
-    <h2>🏡 會「呼吸」的房子──綠建築的秘密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「金屬導熱快，容易讓熱能傳入屋內。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>淺色能反射太陽光，吸收的熱量少，因此能保持較低溫。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">說明：</span> 氬氣是熱的不良導體，用來減少「熱傳導」。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>屋頂種草或綠牆：植物蒸散時吸收熱量。<br>校園種樹：樹蔭能降低地面溫度。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-40">
-  <header class="ep-head">
-    <span class="ep-num">第 40 回</span>
-    <h2>🧠 神奇的表格──用「週期表」找到新發明！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「米基利依據週期表中元素性質的規律，逐步推測抗震爆物質。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為同一族的元素原子結構相似，<br>所以它們的化學性質會呈現規律性變化。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 同族元素的性質常有相似趨勢。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>乘法表顯示數字規律。<br>植物成長記錄表可看出氣候變化與生長關係。<br>天氣表幫助我們預測氣溫與雨量。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-41">
-  <header class="ep-head">
-    <span class="ep-num">第 41 回</span>
-    <h2>⚫ 一張比頭髮還薄的神奇紙──石墨烯的誕生！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">D</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「石墨烯是由碳原子組成的單層材料。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>石墨烯的碳原子排列成平面結構，<br>電子能自由移動，因此能導電；<br>鑽石是立體結構，電子被束縛，無法導電。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">說明：</span> 原子能讓電子自由移動，屬於導電材料，性質類似石墨烯。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>可摺疊手機螢幕（需要透明導電材料）。<br>電動車快速充電電池（導電效率高）。<br>智慧衣物（可偵測體溫、傳導電流）。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-42">
-  <header class="ep-head">
-    <span class="ep-num">第 42 回</span>
-    <h2>💧 神祕的白色結晶──水垢從哪裡來？又該怎麼清？</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「水垢主要由碳酸鈣與氫氧化鎂組成。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為水中的碳酸氫鈣與碳酸氫鎂加熱後分解，<br>變成不溶於水的白色結晶沉澱。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">說明：</span> 醋中的乙酸與水垢反應產生氣體（二氧化碳），<br>屬於酸鹼反應。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>倒入白醋或檸檬汁浸泡一晚再刷洗。<br>避免使用強酸或金屬刷，以免傷壺。<br>定期清洗，防止水垢堆積。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-43">
-  <header class="ep-head">
-    <span class="ep-num">第 43 回</span>
-    <h2>♻️ 不浪費一顆原子──化學家的綠色祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「原子經濟強調充分利用原料，減少廢棄物與污染。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>新製程不會產生多餘的副產物，<br>幾乎所有原料都成為產品，因此污染更少。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">說明：</span> 原子經濟 100% 表示所有原子都用在生成產品上。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>使用可重複填充水瓶（不產生塑膠廢棄物）。<br>將廚餘轉成堆肥（讓資源再利用）。<br>節能電器減少能源浪費（提高使用效率）。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-44">
-  <header class="ep-head">
-    <span class="ep-num">第 44 回</span>
-    <h2>🍱 不開火也能熱？──神奇的自熱便當</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「生石灰與水反應會放出大量熱能。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>加太多水時，反應被稀釋，溫度上升不集中，<br>所以雖然有熱產生，但水溫上升較慢。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 將熟石灰加熱變回生石灰，需要吸收能量，是吸熱反應。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>暖暖包（鐵粉氧化放熱）<br>自熱咖啡、軍用口糧<br>部分化學加熱包</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-45">
-  <header class="ep-head">
-    <span class="ep-num">第 45 回</span>
-    <h2>🧴 亂世英雄──能殺菌的化學勇士「漂白水」</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「漂白水的主要成分是次氯酸鈉（NaOCl）。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>次氯酸鈉在水中會產生次氯酸根離子，<br>能氧化細菌內的物質，使其死亡；<br>同時氧化色素分子，讓物體變白。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 次氯酸鈉與酸反應會產生有毒的氯氣。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>酒精：利用揮發性破壞細胞膜。<br>次氯酸水：殺菌但刺激性低。<br>紫外線：用光能破壞細菌DNA。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-46">
-  <header class="ep-head">
-    <span class="ep-num">第 46 回</span>
-    <h2>🧤 手中的小太陽──暖暖包的祕密！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「鐵粉與氧氣反應生成氧化鐵並放出熱能。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>鋁粉反應雖穩定但不易起熱；鋅粉太貴且反應太快，熱量持續時間短；<br>鐵粉價格低、反應速度適中，最實用。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 沒有空氣（氧氣）就無法進行氧化反應，自然不會發熱。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>自熱便當（氧化鈣與水放熱）。<br>登山加熱包（鐵粉氧化放熱）。<br>醫療熱敷貼。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-47">
-  <header class="ep-head">
-    <span class="ep-num">第 47 回</span>
-    <h2>🎇 仙女棒的魔法火花──化學在閃亮！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「燃燒是劇烈的氧化反應，會產生熱與光。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>仙女棒含有鎂粉，鎂遇水會劇烈反應，<br>可能讓火勢更大，因此不能用水滅火。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">D</span></h3>
-<p class="note"><span class="lbl">說明：</span> 鉀化合物燃燒會發出紫色光。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>節慶煙火：燃燒不同金屬鹽產生各色光。<br>爐火燃燒：天然氣氧化釋放光與熱。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-48">
-  <header class="ep-head">
-    <span class="ep-num">第 48 回</span>
-    <h2>🌊 當大海變酸了──海洋酸化的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「海洋吸收太多二氧化碳導致酸化。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為酸化後的海水碳酸根離子變少，<br>貝殼和珊瑚無法順利形成碳酸鈣外殼。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">說明：</span> pH值下降代表酸性增加，海水變酸。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>減少開車、節能省電。<br>多植樹造林吸收二氧化碳。<br>支持綠能（太陽能、風能）。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-49">
-  <header class="ep-head">
-    <span class="ep-num">第 49 回</span>
-    <h2>🍞 麵包為什麼會膨脹？──食物裡的氣泡魔法！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「酵母菌發酵、小蘇打粉或泡打粉反應都會產生二氧化碳氣體。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>小蘇打粉本身是鹼性，需要遇到酸才能發生化學反應，<br>釋放二氧化碳，讓麵糰膨脹。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">說明：</span> 放太久，反應早已發生完，氣泡跑掉，麵糰不會再膨。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　答案：</h3>
-<p>利用小蘇打粉加熱會產生二氧化碳氣體的性質。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-50">
-  <header class="ep-head">
-    <span class="ep-num">第 50 回</span>
-    <h2>💄 會變色的口紅膠──顏色背後的科學魔法！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「口紅膠中的指示劑會因酸鹼度改變而變色。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 空氣中的二氧化碳溶入水後形成碳酸，使膠水變酸而無色。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">說明：</span> 加入鹼性液體可讓指示劑回到紫色狀態。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>紫甘藍汁遇酸變紅、遇鹼變綠。<br>洛神花茶加檸檬汁顏色變深。<br>洗衣粉水（鹼性）能讓部分植物色素褪色。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-51">
-  <header class="ep-head">
-    <span class="ep-num">第 51 回</span>
-    <h2>⛰️ 石頭也會長！──鐘乳石的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「鐘乳石是碳酸鈣（CaCO₃）的沉澱物。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為石灰岩含碳酸鈣，容易被酸性雨水溶解，<br>又能在適當條件下重新沉澱形成鐘乳石。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">說明：</span> 二氧化碳減少使反應往左移，碳酸鈣沉澱加快，鐘乳石成長較快。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>可用稀鹽酸滴在結晶上觀察是否產生氣泡（CO₂）。<br>若有氣泡，表示含碳酸鈣，可能是鐘乳石。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-52">
-  <header class="ep-head">
-    <span class="ep-num">第 52 回</span>
-    <h2>💥 肥料也會爆炸？──黎巴嫩港大爆炸的科學真相</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「硝酸銨溶於水時會吸收熱能，使水變冷。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為硝酸銨含有氮元素，<br>能提供植物生長所需的營養。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 高溫環境與可燃物會讓硝酸銨分解，可能引起爆炸。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>一次性冰袋（壓破後會變冷）。<br>化學冷敷包。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-53">
-  <header class="ep-head">
-    <span class="ep-num">第 53 回</span>
-    <h2>👕 穿得漂亮，也能愛地球──環保時尚的祕密！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「鳳梨、橘子等農作物製成的布屬於再生纖維。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為寶特瓶的材質是聚酯纖維，可以重新熔化拉絲，<br>再製成新的布料使用。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">D</span></h3>
-<p class="note"><span class="lbl">說明：</span> 回收舊資源重新製造新產品，屬於「再生（Recycle）」。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>選擇環保品牌或再生布料製成的衣服。<br>租借或交換衣服。<br>把不穿的衣物回收再利用。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-54">
-  <header class="ep-head">
-    <span class="ep-num">第 54 回</span>
-    <h2>🌊 海上的黑色災難──油汙讓大海窒息了！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「船隻翻覆、觸礁或油井外洩會造成海洋漏油。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>油膜會擋住陽光和空氣，使魚、海藻等無法呼吸與生長。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 油分散劑能讓油分散成小油滴，方便細菌分解。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>可用吸油紙或舊布吸附，並請老師協助清理。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-55">
-  <header class="ep-head">
-    <span class="ep-num">第 55 回</span>
-    <h2>🦷 會變硬的魔法膠──補牙的祕密！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">說明：</span> 補牙材料中的單體含碳，屬於有機化合物。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為照光會啟動引發劑，使單體分子連結成網狀結構，<br>產生聚合反應而變硬。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 聚合後不可再加熱軟化，屬於熱固性聚合物。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>美甲膠（照UV燈固化）<br>3D列印光固化樹脂<br>紫外線修補膠</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-56">
-  <header class="ep-head">
-    <span class="ep-num">第 56 回</span>
-    <h2>⚗️ 神奇的浮浮棒──測出水有多「鹹」！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「波美計是利用浮力原理測量液體密度。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>氣泡會讓波美計變輕，<br>浮得比應有的高度高，導致誤差。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">說明：</span> 鹽水濃度增加，密度變大，浮力變強，波美計會浮得更高。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>在鹽水中讓雞蛋漂浮實驗。<br>量蜂蜜或糖漿的濃度。<br>海水浮力比淡水強。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-57">
-  <header class="ep-head">
-    <span class="ep-num">第 57 回</span>
-    <h2>🌊 深海探險家的挑戰──身體裡的氣泡祕密！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「潛得越深，水壓越大。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為外界壓力突然降低，<br>血液中的氣體來不及釋放，<br>形成氣泡堵塞血管。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">說明：</span> 每下潛 10 公尺增加 1 個大氣壓，<br>海面 1 + 20 公尺（2 個）＝3 個大氣壓。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>汽水瓶打開時壓力變小，<br>二氧化碳迅速冒出，<br>就像潛水員上升太快時氣泡突然釋放。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-58">
-  <header class="ep-head">
-    <span class="ep-num">第 58 回</span>
-    <h2>👟 鞋底的秘密──抓地力的科學！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「地面濕滑會減少鞋底與地面的摩擦力。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>深紋路能排出地面的水或灰塵，<br>讓鞋底更容易接觸地面，摩擦力變大。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">說明：</span> 面積小壓力大，壓力 = 力 ÷ 面積。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>球鞋：紋路多，用於跑跳、增加抓地力。<br>皮鞋：紋路少，外觀整潔但容易滑。<br>雨鞋：溝槽深，排水效果好。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-59">
-  <header class="ep-head">
-    <span class="ep-num">第 59 回</span>
-    <h2>🚄 飛一般的速度──高鐵讓台灣變小了！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">說明：</span> 直達車停靠最少，行車時間最短。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為高鐵速度快，使人們可以在一天內往返南北兩地工作或遊玩。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p>計算：<br>340 ÷ 255 ≈ 1.33 小時 ≈ 1 小時 20 分鐘。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>學生可自由創意回答，如：<br>「從台南出發→嘉義→台中→台北，讓家人一起旅遊方便。」</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-60">
-  <header class="ep-head">
-    <span class="ep-num">第 60 回</span>
-    <h2>🏢 電梯裡的魔法──為什麼我忽然變重又變輕？</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 電梯往上加速時，地板對人的推力增加，體重計讀數變大。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>電梯往下加速時，地板推力變小，所以人感覺變輕。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 加速度太大會讓血液集中或分散，造成不適。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>坐雲霄飛車加速下滑時會「心一沉」。<br>往上彈跳時感覺身體被壓下。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-61">
-  <header class="ep-head">
-    <span class="ep-num">第 61 回</span>
-    <h2>⚛️ 太陽的力量──核能到底能不能用？</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 地球上的核電廠是利用「核分裂」釋放能量。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>根據愛因斯坦的公式 E = mc²，<br>只要少量的質量消失，就能產生大量能量。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 核分裂釋放能量 → 轉為熱能 → 推動渦輪產生機械能 → 帶動發電機產生電能。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>支持再生能源（太陽能、風能、水力）。<br>節約用電，減少對核能與火力的依賴。<br>加強核電安全與廢料處理技術。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-62">
-  <header class="ep-head">
-    <span class="ep-num">第 62 回</span>
-    <h2>🚴‍♀️ 腳踏車的祕密──為什麼換檔會變輕鬆？</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">說明：</span> 腳踏車的變速系統主要利用齒輪大小不同，改變轉動速度與力量。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為前齒輪大、後齒輪小時，每踩一圈傳動距離變遠，速度快但需要較大力量。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 前小後大可放大力量、減少阻力，適合上坡。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>時鐘、汽車引擎、風車、玩具機器人等都用齒輪傳動。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-63">
-  <header class="ep-head">
-    <span class="ep-num">第 63 回</span>
-    <h2>👕 會發電的衣服──奈米發電機的祕密！</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「摩擦奈米發電機是以兩種材料摩擦起電的方式發電。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>不同材料接觸與分離時，電子會從一邊轉移到另一邊，<br>產生正電與負電，形成電位差。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：不會。</h3>
-<p class="note"><span class="lbl">說明：</span> 只有不同材質間電子轉移才會產生靜電，<br>相同材質摩擦不會有明顯電能。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>能靠摩擦充電的手套或鞋底。<br>運動包或書包上的小型發電片。<br>走路時發電的地板或樓梯。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-64">
-  <header class="ep-head">
-    <span class="ep-num">第 64 回</span>
-    <h2>🌎 大地變成泥漿？！──土壤液化的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「砂質地層 + 高地下水 + 強烈地震」為液化三要素。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>地震時地面劇烈搖晃，水被擠進砂粒之間，<br>讓砂粒漂浮起來，地層變軟。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：不會。</h3>
-<p class="note"><span class="lbl">說明：</span> 地下水少、地層緊密，水不易滲入砂粒間隙，因此不會液化。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>沿海低地（例：台南、彰化）容易液化；<br>山區岩層堅固（例：阿里山）較不易液化。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-65">
-  <header class="ep-head">
-    <span class="ep-num">第 65 回</span>
-    <h2>🪨 岩石奇幻國度──野柳的祕密風景</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「野柳的岩石是由風和海浪長期侵蝕形成。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因河流流速快慢不同，帶來的泥沙顆粒大小不同，<br>因此形成砂岩與頁岩交錯的地層。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：古代海底環境。</h3>
-<p class="note"><span class="lbl">說明：</span> 化石屬於海洋生物，代表當地曾經在海底沉積形成。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>河流侵蝕形成峽谷（如太魯閣）。<br>風力形成沙丘（如屏東車城）。<br>海浪形成海蝕洞（如象鼻岩）。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-66">
-  <header class="ep-head">
-    <span class="ep-num">第 66 回</span>
-    <h2>🌋 大屯火山的祕密──沉睡的巨人會再醒來嗎？</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「菲律賓海板塊隱沒到歐亞大陸板塊之下」。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為大屯火山地下仍有岩漿活動，且最後一次噴發在五、六千年前，<br>符合活火山的定義。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：地震活動、地表隆起、溫泉化學變化。</h3>
+<main class="main" id="mainArea">
+<div class="ep" id="epCard"></div>
+<div class="swipe-hint" id="swipeHint">← 左右滑動切換回合 →</div>
+</main>
 
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>了解是否屬於火山地區。<br>觀察地熱、氣體變化。<br>關注科學單位的監測資訊。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-67">
-  <header class="ep-head">
-    <span class="ep-num">第 67 回</span>
-    <h2>🌌 夜空的祕密──星座和黃道十二宮</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span> 星座是把「視線方向相近」的星星連成圖形。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為太陽在白天經過那個星座方向，光太強，夜晚就看不到。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 太陽與我們能看到的夜空方向相反。太陽位在獅子座，夜晚能看到的就是對面的水瓶座。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>學生可選擇自己喜歡的星座並分享：<br>形狀（例如獅子座像皇冠）<br>季節（夏天、冬天出現）<br>故事（神話或文化意象）</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-68">
-  <header class="ep-head">
-    <span class="ep-num">第 68 回</span>
-    <h2>🌠 會許願的星星──流星雨的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「彗星經過太陽時留下灰塵，地球經過時被吸進大氣層燃燒發光。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>滿月的光太亮，會讓微弱的流星光被掩蓋，看不清楚。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：不會。</h3>
-<p class="note"><span class="lbl">說明：</span> 流星雨發生在地球通過彗星軌道的特定時期，每年大約固定一次。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>遠離城市燈光、選無月亮的夜晚。<br>躺下觀看整個天空，耐心觀察。<br>夏季英仙座、冬季雙子座都是好選擇。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-69">
-  <header class="ep-head">
-    <span class="ep-num">第 69 回</span>
-    <h2>🔋 手機裡的小炸彈？──鋰離子電池的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「鋰離子電池被廣泛用於手機、筆電、行動電源與電動車。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>當電池受撞擊、變形或充電過久時，<br>會造成內部短路與溫度上升，<br>引發連鎖反應──熱失控。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　參考方向：</h3>
-<p>重壓可能讓電池內部變形或短路，導致過熱甚至起火。</p>
-<p>(4) 參考答案：<br>不長時間充電。<br>不讓電池暴露在高溫下。<br>定期檢查電池外觀是否異常。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-70">
-  <header class="ep-head">
-    <span class="ep-num">第 70 回</span>
-    <h2>📱 空氣中也能充電？──無線充電的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「利用線圈內磁場變化產生感應電流」<br>。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為磁場的力量會隨距離迅速減弱，<br>太遠時感應電流就變得太弱，無法有效充電。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　參考解答：</h3>
-<p>磁共振式需要特定頻率設計，技術困難、成本高，<br>因此還無法大量應用。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>可設計在桌面中央或椅子下方，<br>讓使用者只需把手機放上去就能充電，<br>同時確保距離夠近、傳輸效率高。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-71">
-  <header class="ep-head">
-    <span class="ep-num">第 71 回</span>
-    <h2>💿 會「記憶」的磁鐵──硬碟的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「磁場變化會在線圈中產生感應電流」<br>112國中自然3下素養Levelup-ch2魔術大空間-硬碟的…<br>。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>巨磁電阻材料能讓磁頭更靈敏，<br>訊號變化更明顯，因此磁區可縮小、資料更密集，<br>提升儲存容量。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　參考方向：</h3>
-<p>磁場感應變弱，感應電流不足，電腦就無法準確讀出資料。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>電磁爐（電生磁 → 熱）<br>電風扇（電生磁 → 轉動）<br>麥克風（聲波振動 → 感應電流）</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-72">
-  <header class="ep-head">
-    <span class="ep-num">第 72 回</span>
-    <h2>🌬️ 山那邊的熱風──焚風的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「當空氣越過山頂在背風面下降時，會形成乾熱的風。」<br>112國中自然3下素養Levelup-ch3外面颳起大熱風—焚…</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>空氣下降時受到擠壓、溫度上升、濕度下降，<br>因此變得又乾又熱。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">B</span></h3>
-<p class="note"><span class="lbl">說明：</span> 當颱風中心通過臺灣北部時，西風吹過中央山脈，在臺東產生焚風。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>焚風可幫助曬乾農作物或衣物，<br>也能讓潮濕的地區暫時變乾爽。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-73">
-  <header class="ep-head">
-    <span class="ep-num">第 73 回</span>
-    <h2>🌫️ 灰濛濛的天空──是霧還是霾？</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「太陽升起後不會消失的是霾。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>霾由灰塵與汙染微粒組成，不是水滴，<br>因此不會因氣溫上升而蒸發。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　答案：<span class="ans">C</span></h3>
-<p class="note"><span class="lbl">說明：</span> 紅燈代表空氣對所有族群不健康，應減少戶外活動。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>多搭大眾運輸，少開車<br>不亂燒垃圾<br>在家種綠色植物幫助淨化空氣</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-<section class="episode" id="ep-74">
-  <header class="ep-head">
-    <span class="ep-num">第 74 回</span>
-    <h2>❄️ 這個冬天為什麼那麼冷？──北極振盪的祕密</h2>
-  </header>
-  <div class="ep-body">
-<div class="qa"><h3 class="qa-head">第 1 題　答案：<span class="ans">A</span></h3>
-<p class="note"><span class="lbl">關鍵語句：</span>「北極振盪指數為負值時，極區氣壓較高，中緯度氣壓較低。」</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 2 題　參考解答：</h3>
-<p>因為氣壓分布改變、噴流變弱，<br>北極的冷空氣容易往南移動，<br>導致台灣出現劇烈降溫與寒流。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 3 題　參考方向：</h3>
-<p>噴流變得不穩定、曲折，<br>冷空氣可能更常南下，<br>造成冬天極端低溫、夏天高溫與暴雨增加。</p>
-</div>
-<div class="qa"><h3 class="qa-head">第 4 題　參考方向：</h3>
-<p>穿著保暖衣物、留意氣象警報；<br>檢查電暖器與防寒設備；<br>關心長輩與幼兒的健康狀況。</p>
-</div>
-  </div>
-  <a class="top-link" href="#top">↑ 回到頂端</a>
-</section>
-  </main>
-</div>
 <script>
-// Search filter for menu
-const search = document.getElementById('searchBox');
-const items = document.querySelectorAll('#menuList li');
-search.addEventListener('input', ()=>{
-  const q = search.value.trim().toLowerCase();
-  items.forEach(li=>{
-    const txt = li.textContent.toLowerCase();
-    li.style.display = (!q || txt.includes(q)) ? '' : 'none';
-  });
+const EP=[{"id": 0, "title": "🪲 消失的玉米葉──秋行軍蟲入侵記", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 溫度越高，昆蟲體內的新陳代謝越快，發育所需時間越短；氣溫低時，活動與生長速度會變慢。<br>常見錯誤： 有些學生會以為「光線強」就會讓昆蟲長得快，但光線並非主要影響因素。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 六月是夏季，溫度高、繁殖快，加上成蟲可一次產下數百顆卵，因此族群數量會快速上升。<br>常見錯誤： 有學生誤以為「蟲多會吃光食物就變少」，但實際上短期內仍是呈現爆發性成長。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 化學殺蟲劑使用久了，生存下來的蟲會逐漸演化出「抗藥性」，導致藥越用越沒效；<br>蘇力菌則屬於生物防治，效果穩定且不易產生抗性。<br>常見錯誤： 以為蘇力菌「太弱」，但其實是長期效果更好。</p></div>"}, {"id": 1, "title": "🦗 綠色小蟲的大軍──沙漠飛蝗的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 群居型蝗蟲體色變黃褐色、身上有毒，是為了警告或嚇退掠食者，屬於「擬警防禦」。<br>常見錯誤： 有學生以為是「為了變漂亮吸引異性」，但蝗蟲的交配行為與體色無關。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 文章指出「降雨高、氣溫高」會刺激蝗蟲繁殖，使卵更快孵化。這兩項是主要環境因子。<br>常見錯誤： 有學生認為「空氣」或「光線」影響，但蝗蟲的成長主要受氣候條件影響。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　開放作答（參考方向）</div><p class=\"n\"><b class=\"l\">推論：</b> 暖化與極端氣候會讓蝗災更常發生。<br>防治方法：<br>定期監測蝗蟲數量與棲地變化。<br>利用衛星影像預測遷徙路線。<br>使用生物防治或環境管理減少繁殖地。</p></div>"}, {"id": 2, "title": "💧 水會跑去哪裡？──滲透的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 清水中水分子濃度高，會透過葡萄乾表皮（半透膜）進入裡面，使它膨脹；<br>糖水濃度高，水反而會被吸出，使葡萄乾變小。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>滲透作用是水分子從濃度低的地方移動到濃度高的地方。<br>清水那一邊水多糖少，所以水會進入葡萄乾；<br>糖水那一邊水少糖多，所以水從葡萄乾流出。<br>延伸觀念： 滲透是為了「平衡兩邊濃度」，而非因為葡萄乾「吸水」。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 滲透式海水淡化是利用半透膜讓水流入特殊溶液，再去除該溶質；<br>逆滲透（加壓法）則是用壓力逼水反向流動。<br>常見錯誤： 有學生誤以為逆滲透才是「自然的滲透」，其實它是「人造壓力」的結果。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考解答：</div><p>醃漬時外層糖或鹽濃度高，微生物體內水分會因滲透作用流出，使其脫水死亡，食物因此不易腐敗。<br>延伸觀念： 滲透不只發生在實驗中，也會出現在生活保存技術裡。</p></div>"}, {"id": 3, "title": "🧬 細胞裡的魔法師──幹細胞的祕密任務", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 能分裂並變成不同種類細胞的，就是幹細胞。<br>延伸觀念： 幹細胞的主要特色是「多能性」（能變化成其他細胞）。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>幹細胞能修復受損的組織、取代老化的細胞，幫助身體維持健康。<br>例如皮膚破皮後，體內的幹細胞會產生新皮膚細胞來修補。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 年紀增長後，體內幹細胞的數量會減少，修補速度變慢。<br>常見錯誤： 有些學生以為是因為「神經變慢」或「體溫影響」，其實主要與幹細胞數量有關。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>優點： 可用於器官修復、醫療再生、減少器官移植需求。<br>注意事項： 技術仍不成熟，且涉及倫理與安全問題（如細胞突變風險）。</p></div>"}, {"id": 4, "title": "☕ 泡奶茶也有科學──誰的茶比較香？", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 茶葉細胞膜是半透膜，水分子能通過進入細胞。<br>當水進入後，茶裡的色素和香氣成分會被溶出。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>熱水能促進滲透作用，幫助水進入茶葉細胞並帶出茶味；<br>如果先加牛奶，溫度較低、分子較大，會阻礙茶葉釋放香氣與色素。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 冰牛奶溫度低，滲透作用進行得非常慢，<br>因此茶味幾乎不會釋放出來。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>泡香菇： 乾香菇吸水變軟，是滲透作用使水進入細胞。<br>醃菜： 鹽水濃度高，使蔬菜中的水分滲出，達到保存效果。</p></div>"}, {"id": 5, "title": "🍍 讓牛排變軟的祕密──鳳梨酵素的魔法！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 研究指出鳳梨酵素在中性或偏鹼性的環境（pH 6.8～9.0）下、<br>25～40℃ 時活性最佳。夏天約 30℃，正好符合這個條件。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>人體中負責分解蛋白質的酵素有：<br>胃液中的胃蛋白酶<br>小腸與胰臟分泌的胰蛋白酶、胰凝乳酶<br>它們的功能都與鳳梨酵素相似，能將蛋白質分解成胺基酸。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 鳳梨酵素的活性範圍廣，在酸性（pH 4.6）到鹼性（pH 9.5）環境下都能作用，<br>因此能在胃酸中短暫存活，進入小腸後繼續發揮作用。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>例子1： 木瓜酵素（常用來嫩化肉質）<br>例子2： 洗衣粉酵素（分解衣服上的油脂或蛋白污漬）<br>例子3： 鳳梨酵素膠囊（幫助消化）</p></div>"}, {"id": 6, "title": "🥑 窮人的奶油──酪梨的營養祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 脂溶性維生素（如維生素A、D、E、K）需要油脂幫助吸收。<br>堅果含有健康的不飽和脂肪酸，和酪梨一起吃能提升吸收率。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>酪梨採收時還沒完全成熟，果肉中的酵素會在室溫下持續作用，<br>幫助果肉變軟、香氣產生。如果太早放入冰箱，溫度太低會讓酵素停止活動，<br>導致果實無法成熟、吃起來又硬又澀。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　參考方向：</div><p>酪梨的含糖量很低，主要成分是脂肪與膳食纖維，<br>能延緩血糖上升、增加飽足感，糖尿病患者可以適量食用，<br>但因為熱量高，要注意不要吃太多。</p><p>這樣一來，小學高年級學生能從「酪梨」這個生活例子理解：<br>食物中有不同種類的養分（醣類、脂肪、蛋白質）<br>酵素與成熟的關係<br>飲食控制與健康概念</p></div>"}, {"id": 7, "title": "❤️ 心臟的隱形殺手──二尖瓣的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 靜脈中有瓣膜，能防止血液因重力而倒流，幫助血液順利回到心臟。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>血液在心臟收縮時若二尖瓣關不緊，部分血液會倒流到左心房，<br>導致心臟需要更用力地工作，長期可能造成心臟擴大或衰竭。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">解釋：</b> 當口腔發炎時，細菌可經由血液循環進入全身，<br>若附著在受損的二尖瓣上，就可能造成感染性心內膜炎。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>維持良好口腔衛生，預防細菌入侵。<br>定期健康檢查與心臟超音波追蹤。<br>避免過度壓力與熬夜，保持良好作息。<br>有症狀時及早就醫。</p></div>"}, {"id": 8, "title": "🧠 被誤會的神祕器官──闌尾的真正任務", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案： <span class=\"ans\">B</span></div></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　參考解答：</div></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>多吃蔬菜與優酪乳，幫助腸道菌平衡。<br>注意衛生、勤洗手，避免病菌感染。</p></div>"}, {"id": 9, "title": "🧬 痘痘是怎麼形成的？", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「受感染細胞會分泌發炎因子，使血管擴張，帶來白血球……」<br>說明： 組織液是從擴張的血管滲出，帶有白血球與生長因子。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為手上的細菌可能進入破口，使感染更深入皮下；<br>這會導致二次感染或留下疤痕，嚴重者甚至引起蜂窩性組織炎。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「感染時間一長，淋巴球也會出動參與免疫防禦……」<br>說明： 淋巴球屬於第三道防線，會破壞受感染細胞並產生抗體。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>保持清潔，減少毛孔阻塞。<br>規律作息、少吃油炸甜食，避免皮脂過多。<br>使用防曬乳，減少紫外線引起的發炎與黑色素沉澱。</p></div>"}, {"id": 10, "title": "🪳 小強為何這麼強──蟑螂的生存祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">D</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「蟑螂主要利用腹部末端的一對尾毛，感受空氣振動。」<br>說明： 尾毛能偵測空氣變化並將訊息傳給腦部。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>蟑螂在光亮環境中警覺性提高，判斷危險反應更快，<br>因此逃跑速度比黑暗中快。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「蟑螂會分泌警告費洛蒙，其他蟑螂用觸角接收訊息。」<br>說明： 這是天生的本能行為，與螞蟻用觸角傳遞訊息相似。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>蟑螂具備高度感覺能力（偵測氣流、氣味）與協同行為。<br>可運用此原理設計防蟑方法，如：<br>使用無味氣體或氣流干擾牠的偵測系統。<br>避免留下食物氣味，減少費洛蒙吸引。</p></div>"}, {"id": 11, "title": "🧊 漸凍症──神經退化的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「病人的意識與感覺仍清楚，仍能聽見與看見。」<br>說明： 感覺神經未受損，因此仍能感受聲音與影像。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為漸凍症是運動神經元壞掉，<br>導致肌肉接收不到大腦指令；<br>但感覺神經正常，所以仍能感覺冷暖與聽見聲音。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「下運動神經元病變多從手掌或腳掌開始肌肉萎縮。」<br>說明： 無法傳遞訊號給肌肉，造成萎縮與無力。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>讓更多人了解漸凍症、願意捐款或支持病友。<br>提醒社會重視罕見疾病與生命教育。<br>鼓勵科技發展輔助設備，幫助病患溝通與生活。</p></div>"}, {"id": 12, "title": "🍓 聞到的味覺──原來香氣也能影響味道！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「氣味分子會沿著鼻腔傳到嗅覺細胞，然後傳給大腦。」<br>說明： 草莓的「香氣」是由嗅覺辨識出的，不是舌頭辨出來的。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>感冒鼻塞會使氣味分子進不去鼻腔，嗅覺細胞無法接收訊息，<br>因此雖然味蕾能感覺酸甜，但少了香氣，會覺得「食之無味」。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 缺少視覺輔助，大腦難以區分相似的味道，容易誤判。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>例：喝可樂與雪碧時若顏色一樣、鼻子塞住，會分不出差別。<br>例：看到紅色飲料時會以為是甜的，實際上可能是酸味。</p></div>"}, {"id": 13, "title": "🐪 沙漠之舟的神祕絕活──駱駝的生存智慧", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「腎臟能把尿液中的水分再回收，只留下廢物。」<br>說明： 駱駝的腎臟能高度濃縮尿液，是節水的主要器官。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>白天體溫上升能減少排汗、避免水分流失；<br>晚上再緩慢散熱，有助於節約水分並維持體溫平衡。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「呼氣時鼻孔能回收水氣。」<br>說明： 若鼻孔裂縫無法作用，蒸氣無法回收，導致失水增加。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>穿著透氣衣物、避免正午外出。<br>多補水但分次少量飲用。<br>使用毛巾降溫、讓體溫逐步散出。<br>保持環境通風，模仿「氣流降溫」原理。</p></div>"}, {"id": 14, "title": "🍞 減重新風潮──低GI飲食真的比較健康嗎？", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「白飯的GI值是84，屬於高GI食物。」<br>說明： 白飯消化快、升糖速度高。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>低GI食物吸收慢，血糖上升得比較緩，<br>能讓飽足感維持久一點，不容易餓，<br>因此能減少進食、幫助控制體重。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「血糖上升太快會引起噁心、心跳加速，嚴重可能昏迷。」<br>說明： 糖尿病患者若血糖變化劇烈，會影響身體安全。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>健康午餐設計示例：<br>主食：糙米飯（GI值低）<br>配菜：小黃瓜、花椰菜（富含纖維）<br>蛋白質：烤魚或雞胸肉（低脂高蛋白）<br>說明： 這樣的組合能延緩血糖上升並維持飽足感。</p></div>"}, {"id": 15, "title": "🐴 神奇的海馬──爸爸懷孕的祕密！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「育兒囊會形成血管網，供應氧氣與養分，也排出廢物。」<br>說明： 功能與人類的胎盤相似，都是提供營養與交換氣體的器官。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>海馬是卵生。<br>因為文章提到「雌海馬把卵注入公海馬體內，再與精子結合形成受精卵」。<br>也就是先產卵，再在體內受精。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　參考解答：</div><p>夜晚掠食者較少，能減少小海馬被吃掉的機率，<br>提高子代的存活率。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>企鵝：父母輪流孵蛋、用身體保溫。<br>青蛙：將卵產在水邊、由水草保護。<br>鱷魚：母鱷守護巢穴，幫幼鱷回到水中。</p></div>"}, {"id": 16, "title": "🌿 從一塊馬鈴薯長出新生命──組織培養的祕密！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「植物細胞具有全能性，可分化成完整個體。」<br>說明： 只有植物的已分化細胞能回復為未分化細胞並再生長。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>植物細胞具有「全能性」，能分裂出未分化細胞再形成新個體；<br>而動物的細胞多已分化完成，缺乏回復能力，因此無法再生出完整生物。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「無性生殖產生的作物基因單一，容易大規模損失。」<br>說明： 組織培養的植株基因完全相同，若病害出現，容易全體感染。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>好處：<br>可幫助修復受損器官或治療血液疾病。<br>促進醫學研究與藥物開發。<br>注意問題：<br>涉及「胚胎來源」等倫理爭議。<br>使用上需確保安全與防止濫用。</p></div>"}, {"id": 17, "title": "🥔 發芽的蔬果能吃嗎？──從馬鈴薯談起！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「馬鈴薯發芽時會產生茄鹼，加熱後也無法去除。」<br>說明： 茄鹼是一種天然毒素，食用會造成急性中毒。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>馬鈴薯在發芽時產生茄鹼，是植物的防禦物質；<br>這種毒素耐熱，不會被煮熟破壞，因此不能吃。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">說明：</b> 高溫或潮濕環境會讓馬鈴薯發芽並增加毒素，縮短保存期。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>大蒜發芽：增加含硫抗氧化物，提升免疫力。<br>豆芽菜：維生素A、膳食纖維多，低熱量健康。</p></div>"}, {"id": 18, "title": "👑 血友病的祕密──藏在皇室基因裡的故事", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「血友病是X染色體上基因異常造成的疾病。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>男性只有一條X染色體，若該X上有異常基因就會發病；<br>女性有兩條X，其中一條正常可補償，因此多為帶原者不發病。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 女帶原者與正常男性結婚時，<br>男孩有50%機率得到異常X染色體而發病。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>近親可能都帶有相同的隱性致病基因，<br>若雙方結婚，後代同時遺傳兩個異常基因的機率提高，<br>導致遺傳疾病（如血友病）更容易發生。</p></div>"}, {"id": 19, "title": "👶 三個人的基因？──神奇的「粒線體捐贈」新生命", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「粒線體只存在於卵細胞內，父親的精子只提供細胞核。」<br>說明： 因此粒線體基因只會從母親遺傳。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>寶寶的基因有三部分：<br>爸爸與媽媽：提供細胞核中的大部分基因（99.9%）。<br>捐贈媽媽：提供健康的粒線體基因（約0.1%）。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 若母親粒線體基因有缺陷，會遺傳給孩子，導致粒線體疾病。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>科學家可先進行充分的安全測試，再有限度應用。<br>政府與醫師應設立倫理審查制度。<br>尊重生命價值，同時防止技術被濫用。</p></div>"}, {"id": 20, "title": "🌾 育種──人類改變物種的力量", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「人類挑選出喜歡的個體再繁殖，就是人工選擇。」<br>說明： 農夫的挑選行為是由人主導的選擇，不是自然發生。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>天擇是由自然環境決定哪個生物能活下來；<br>人擇則是由人類挑選具有特定特徵的生物來繁殖。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">說明：</b> 長期挑選大果實個體繁殖，會讓新品種的平均果實越來越大。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>優點： 能快速改良作物、提高產量、抗病蟲害。<br>注意問題： 可能造成基因污染、生態失衡或食安疑慮。</p></div>"}, {"id": 21, "title": "👩‍👧 靠「媽」的母系遺傳──藏在我們身體裡媽媽記號", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「粒線體與葉綠體的DNA由卵子提供，屬於母系遺傳。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為受精時只有媽媽的卵子提供細胞質與粒線體，<br>而爸爸的精子只留下細胞核，所以粒線體DNA只從媽媽遺傳。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 粒線體DNA不會經歷有性生殖的基因重組，<br>可直接追蹤母系血緣關係。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「母系遺傳能由媽媽→外祖母→女兒一路相傳。」<br>說明： 祖母屬於爸爸那邊，與自己粒線體DNA不同。</p></div>"}, {"id": 22, "title": "🦖 恐龍有羽毛？──化石裡藏的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">D</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「科學家推論，最初的羽毛不是用於飛行，而是偽裝、求偶或保暖。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為在恐龍化石與琥珀中發現完整的羽毛結構，<br>證明牠們身上確實有羽毛痕跡。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">說明：</b> 琥珀中保留了羽毛與骨骼，能直接觀察恐龍外觀特徵。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>化石：可觀察生物的形狀與骨骼。<br>琥珀：能保存毛髮、羽毛或昆蟲。<br>冰層：可研究當時的氣候與動植物。</p></div>"}, {"id": 23, "title": "🐀 與眾不同的哺乳動物──地底王國的裸鼴鼠！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「裸鼴鼠生活在地底，不會飛行，靠前爪挖掘地道。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為裸鼴鼠族群有明確分工與母后制度，<br>像螞蟻或蜜蜂一樣，屬於真社會性動物。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 裸鼴鼠能在無氧環境下暫時休眠且不受損，<br>能提供研究人類缺氧治療的線索。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>了解牠的抗癌機制，<br>可能幫助人類開發新的抗老化或防癌藥物。</p></div>"}, {"id": 24, "title": "🐜 切葉蟻與牠的農場──蟻巢裡的農夫祕密！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「切葉蟻把葉片咀嚼成糊狀，在上面培養真菌作為食物。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　答案：<span class=\"ans\">D</span></div><p class=\"n\"><b class=\"l\">說明：</b> 螞蟻提供真菌生長的環境，真菌提供螞蟻食物，雙方都受益。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">說明：</b> 鏈黴菌抑制其他真菌生長，是為了爭奪生存空間或資源，屬於競爭關係。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>蜜蜂與花：蜜蜂採花蜜、同時幫花授粉。<br>小丑魚與海葵：小丑魚得到保護，海葵吃牠帶來的食物碎屑。<br>人與腸道菌：腸道菌幫助消化，人提供穩定環境。</p></div>"}, {"id": 25, "title": "🐞 不靠農藥也能打敗害蟲？──生物防治的祕密！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「利用自然界的捕食關係控制害蟲數量。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>生物防治不用化學藥劑，能減少污染、保護其他生物與環境。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 外來物種若缺乏天敵，可能繁殖過多、破壞當地生態。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>用肥皂水或辣椒水清除害蟲。<br>利用瓢蟲、螞蟻等天敵控制蟲害。<br>理由：能保護植物，又不會污染環境。</p></div>"}, {"id": 26, "title": "🐢 該何去何從的海龜──人類行為，改變了牠的命運", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「綠蠵龜穿梭消波塊時容易受困，或小海龜被阻擋無法回海。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>塑膠袋漂浮在海面上像水母，<br>海龜誤食後會造成消化不良、腸道堵塞，甚至死亡。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">說明：</b> 生態工法能保留自然棲地、減少阻礙，<br>同時防止侵蝕與提供海龜產卵地。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>不留下垃圾、不帶走沙灘上的蛋。<br>潛水時保持距離，不觸摸或追逐海龜。<br>減少使用塑膠袋與吸管。</p></div>"}, {"id": 27, "title": "🌎 地球的圓周有多長？──兩座城市的太陽祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「他利用太陽光與影子的夾角推算地球圓周長。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為地球是球形的，兩地在地球表面位置不同，<br>太陽光照射角度也不同，所以一地有影子、一地沒有。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">D</span></div><p class=\"n\"><b class=\"l\">說明：</b> 量測愈多次能減少誤差，使平均值更接近真實數據。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>使用**衛星定位系統（GPS）**量測地球曲面。<br>利用雷射測距或地球儀模型分析。<br>使用地圖比例尺與經緯度資料計算距離。</p></div>"}, {"id": 28, "title": "😷 病毒防疫大作戰──口罩真的能擋住病毒嗎？", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「病毒是旅客，飛沫是飛機。」<br>→ 病毒藉由飛沫傳播給他人。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>外科口罩的孔洞比飛沫小，能擋住含病毒的飛沫；<br>但當飛沫乾燥後只剩病毒時，病毒顆粒太小，可能穿透。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 5微米＝5000奈米，大於500奈米孔徑，因此能被阻擋。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>外出戴口罩，防止飛沫傳播。<br>勤洗手，不讓病毒藉由手進入口鼻。<br>不亂摸臉，減少接觸傳染機會。</p></div>"}, {"id": 29, "title": "🥛 三聚氰胺知多少──毒奶粉事件的化學真相！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「檢測蛋白質是依含氮量判定，業者藉由三聚氰胺提升數值。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">說明：</b> 利用過濾器分離液體與固體，觀察沉澱物。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 冷卻後溶解度降低，三聚氰胺析出成白色沉澱。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>不購買來路不明或價格過低的食品。<br>送交衛生單位檢驗。</p></div>"}, {"id": 30, "title": "💧 看不見的危害──結冰水與寶特瓶的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「水結成冰體積變大，使瓶身膨脹、產生細微裂縫。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>高溫會讓PET塑膠分解，釋放有毒化學物質，<br>若喝下含毒水，可能造成身體不適或內分泌影響。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">說明：</b> 冰融化只是狀態改變，物質本身未改變。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>改用玻璃瓶或金屬水壺裝水。<br>不冷凍、不曝曬瓶裝水。<br>外出自備水壺，減少塑膠瓶使用。</p></div>"}, {"id": 31, "title": "🍬 糖是怎麼做出來？──從甘蔗到白糖的祕密旅程！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「蔗汁由蔗糖（溶質）與水（溶劑）混合而成。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>結晶法是利用溶液濃度變化，<br>讓溶質析出成固體，達到分離的效果。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 提高溶液濃度會加速飽和，使糖更快結晶。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>兩者都利用「蒸發水分 → 溶質析出」的原理，<br>只是前者得到糖晶體，後者得到鹽晶體。</p></div>"}, {"id": 32, "title": "🎧 口罩會吃掉聲音嗎？──聽得見與聽不見的祕密！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「口罩對高頻聲音（2000赫以上）的削弱最明顯。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為口罩阻擋部分高頻聲音，使聲音的清晰度降低，<br>聽起來就像「悶住」一樣。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">說明：</b> 控制音量與距離相同，才能比較不同口罩的影響。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>說話放慢、發音清楚。<br>搭配手勢或表情輔助。<br>面向對方說話，避免背對。</p></div>"}, {"id": 33, "title": "👂 我們怎麼聽到聲音？──還有「骨頭」在幫忙！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「聲音可透過空氣與顱骨兩種方式傳入耳朵。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為聲帶震動會讓顱骨也震動，<br>聲音能透過骨頭傳到內耳，所以仍能聽見。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 骨傳導助聽器能直接將震動傳入內耳，<br>不用經過外耳與鼓膜。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>骨傳導耳機（跑步時可聽音樂又不塞住耳朵）。<br>醫療輔具或潛水通訊設備。</p></div>"}, {"id": 34, "title": "🌞 為何夏天地面會「晃動」？──高溫讓光線變彎的祕密！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「光線在不同溫度、密度的空氣間折射，使影像扭曲。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為地表空氣溫度高、上方空氣較冷，<br>光線經過不同密度的空氣層會彎曲，<br>將天空影像折射到地面上，產生假象。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 光線進出不同介質（空氣、水）時會改變方向。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>眼鏡與放大鏡（利用折射聚焦光線）。<br>潛水鏡或望遠鏡（利用折射調整影像）。</p></div>"}, {"id": 35, "title": "🌈 彩虹什麼形狀？──太陽、雨滴與光的祕密合作！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「彩虹是光線在水滴中經折射與反射形成的。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>不同顏色的光折射角度不同，<br>紫光偏折最多、紅光最少，<br>所以紅在外、紫在內。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 要看到彩虹，太陽必須在觀察者身後，<br>因此彩虹與太陽不會同時出現在同一側。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>在晴天背對太陽用噴水器噴水。<br>在瀑布或噴泉旁觀察。<br>原理：陽光被水滴折射與反射後產生七彩光譜。</p></div>"}, {"id": 36, "title": "🌞 黑色塑膠球──能幫水庫「防曬」的神奇發明！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">D</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「塑膠球製造過程仍需消耗水與能源。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>塑膠球是中空的，裡面的空氣導熱效果差，<br>能隔絕外部熱量，使水不容易被加熱。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 棉被中的空氣層與塑膠球內的空氣一樣，<br>都能減少熱的傳導。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>雙層保溫杯、保麗龍餐盒。<br>房屋天花板中的空氣層隔熱設計。<br>冬天穿羽絨衣保暖。</p></div>"}, {"id": 37, "title": "🌡️ 從冰到火──溫度的祕密與三位科學家的故事", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「華倫海特→攝爾修斯→克爾文爵士」為時間順序。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為攝氏溫標的刻度以水的冰點與沸點為基準，<br>方便理解、容易換算，使用起來最直覺。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">說明：</b> 絕對零度是物質中不再有任何熱能的最低溫狀態。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>美國氣象新聞使用華氏（°F）。<br>教科書與溫度計常用攝氏（°C）。<br>科學實驗報告會使用克氏（K）。</p></div>"}, {"id": 38, "title": "🏡 會「呼吸」的房子──綠建築的秘密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「金屬導熱快，容易讓熱能傳入屋內。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>淺色能反射太陽光，吸收的熱量少，因此能保持較低溫。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">說明：</b> 氬氣是熱的不良導體，用來減少「熱傳導」。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>屋頂種草或綠牆：植物蒸散時吸收熱量。<br>校園種樹：樹蔭能降低地面溫度。</p></div>"}, {"id": 39, "title": "🧠 神奇的表格──用「週期表」找到新發明！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「米基利依據週期表中元素性質的規律，逐步推測抗震爆物質。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為同一族的元素原子結構相似，<br>所以它們的化學性質會呈現規律性變化。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 同族元素的性質常有相似趨勢。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>乘法表顯示數字規律。<br>植物成長記錄表可看出氣候變化與生長關係。<br>天氣表幫助我們預測氣溫與雨量。</p></div>"}, {"id": 40, "title": "⚫ 一張比頭髮還薄的神奇紙──石墨烯的誕生！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">D</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「石墨烯是由碳原子組成的單層材料。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>石墨烯的碳原子排列成平面結構，<br>電子能自由移動，因此能導電；<br>鑽石是立體結構，電子被束縛，無法導電。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">說明：</b> 原子能讓電子自由移動，屬於導電材料，性質類似石墨烯。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>可摺疊手機螢幕（需要透明導電材料）。<br>電動車快速充電電池（導電效率高）。<br>智慧衣物（可偵測體溫、傳導電流）。</p></div>"}, {"id": 41, "title": "💧 神祕的白色結晶──水垢從哪裡來？又該怎麼清？", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「水垢主要由碳酸鈣與氫氧化鎂組成。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為水中的碳酸氫鈣與碳酸氫鎂加熱後分解，<br>變成不溶於水的白色結晶沉澱。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">說明：</b> 醋中的乙酸與水垢反應產生氣體（二氧化碳），<br>屬於酸鹼反應。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>倒入白醋或檸檬汁浸泡一晚再刷洗。<br>避免使用強酸或金屬刷，以免傷壺。<br>定期清洗，防止水垢堆積。</p></div>"}, {"id": 42, "title": "♻️ 不浪費一顆原子──化學家的綠色祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「原子經濟強調充分利用原料，減少廢棄物與污染。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>新製程不會產生多餘的副產物，<br>幾乎所有原料都成為產品，因此污染更少。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">說明：</b> 原子經濟 100% 表示所有原子都用在生成產品上。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>使用可重複填充水瓶（不產生塑膠廢棄物）。<br>將廚餘轉成堆肥（讓資源再利用）。<br>節能電器減少能源浪費（提高使用效率）。</p></div>"}, {"id": 43, "title": "🍱 不開火也能熱？──神奇的自熱便當", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「生石灰與水反應會放出大量熱能。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>加太多水時，反應被稀釋，溫度上升不集中，<br>所以雖然有熱產生，但水溫上升較慢。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 將熟石灰加熱變回生石灰，需要吸收能量，是吸熱反應。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>暖暖包（鐵粉氧化放熱）<br>自熱咖啡、軍用口糧<br>部分化學加熱包</p></div>"}, {"id": 44, "title": "🧴 亂世英雄──能殺菌的化學勇士「漂白水」", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「漂白水的主要成分是次氯酸鈉（NaOCl）。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>次氯酸鈉在水中會產生次氯酸根離子，<br>能氧化細菌內的物質，使其死亡；<br>同時氧化色素分子，讓物體變白。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 次氯酸鈉與酸反應會產生有毒的氯氣。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>酒精：利用揮發性破壞細胞膜。<br>次氯酸水：殺菌但刺激性低。<br>紫外線：用光能破壞細菌DNA。</p></div>"}, {"id": 45, "title": "🧤 手中的小太陽──暖暖包的祕密！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「鐵粉與氧氣反應生成氧化鐵並放出熱能。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>鋁粉反應雖穩定但不易起熱；鋅粉太貴且反應太快，熱量持續時間短；<br>鐵粉價格低、反應速度適中，最實用。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 沒有空氣（氧氣）就無法進行氧化反應，自然不會發熱。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>自熱便當（氧化鈣與水放熱）。<br>登山加熱包（鐵粉氧化放熱）。<br>醫療熱敷貼。</p></div>"}, {"id": 46, "title": "🎇 仙女棒的魔法火花──化學在閃亮！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「燃燒是劇烈的氧化反應，會產生熱與光。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>仙女棒含有鎂粉，鎂遇水會劇烈反應，<br>可能讓火勢更大，因此不能用水滅火。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">D</span></div><p class=\"n\"><b class=\"l\">說明：</b> 鉀化合物燃燒會發出紫色光。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>節慶煙火：燃燒不同金屬鹽產生各色光。<br>爐火燃燒：天然氣氧化釋放光與熱。</p></div>"}, {"id": 47, "title": "🌊 當大海變酸了──海洋酸化的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「海洋吸收太多二氧化碳導致酸化。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為酸化後的海水碳酸根離子變少，<br>貝殼和珊瑚無法順利形成碳酸鈣外殼。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">說明：</b> pH值下降代表酸性增加，海水變酸。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>減少開車、節能省電。<br>多植樹造林吸收二氧化碳。<br>支持綠能（太陽能、風能）。</p></div>"}, {"id": 48, "title": "🍞 麵包為什麼會膨脹？──食物裡的氣泡魔法！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「酵母菌發酵、小蘇打粉或泡打粉反應都會產生二氧化碳氣體。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>小蘇打粉本身是鹼性，需要遇到酸才能發生化學反應，<br>釋放二氧化碳，讓麵糰膨脹。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">說明：</b> 放太久，反應早已發生完，氣泡跑掉，麵糰不會再膨。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　答案：</div><p>利用小蘇打粉加熱會產生二氧化碳氣體的性質。</p></div>"}, {"id": 49, "title": "💄 會變色的口紅膠──顏色背後的科學魔法！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「口紅膠中的指示劑會因酸鹼度改變而變色。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 空氣中的二氧化碳溶入水後形成碳酸，使膠水變酸而無色。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">說明：</b> 加入鹼性液體可讓指示劑回到紫色狀態。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>紫甘藍汁遇酸變紅、遇鹼變綠。<br>洛神花茶加檸檬汁顏色變深。<br>洗衣粉水（鹼性）能讓部分植物色素褪色。</p></div>"}, {"id": 50, "title": "⛰️ 石頭也會長！──鐘乳石的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「鐘乳石是碳酸鈣（CaCO₃）的沉澱物。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為石灰岩含碳酸鈣，容易被酸性雨水溶解，<br>又能在適當條件下重新沉澱形成鐘乳石。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">說明：</b> 二氧化碳減少使反應往左移，碳酸鈣沉澱加快，鐘乳石成長較快。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>可用稀鹽酸滴在結晶上觀察是否產生氣泡（CO₂）。<br>若有氣泡，表示含碳酸鈣，可能是鐘乳石。</p></div>"}, {"id": 51, "title": "💥 肥料也會爆炸？──黎巴嫩港大爆炸的科學真相", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「硝酸銨溶於水時會吸收熱能，使水變冷。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為硝酸銨含有氮元素，<br>能提供植物生長所需的營養。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 高溫環境與可燃物會讓硝酸銨分解，可能引起爆炸。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>一次性冰袋（壓破後會變冷）。<br>化學冷敷包。</p></div>"}, {"id": 52, "title": "👕 穿得漂亮，也能愛地球──環保時尚的祕密！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「鳳梨、橘子等農作物製成的布屬於再生纖維。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為寶特瓶的材質是聚酯纖維，可以重新熔化拉絲，<br>再製成新的布料使用。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">D</span></div><p class=\"n\"><b class=\"l\">說明：</b> 回收舊資源重新製造新產品，屬於「再生（Recycle）」。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>選擇環保品牌或再生布料製成的衣服。<br>租借或交換衣服。<br>把不穿的衣物回收再利用。</p></div>"}, {"id": 53, "title": "🌊 海上的黑色災難──油汙讓大海窒息了！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「船隻翻覆、觸礁或油井外洩會造成海洋漏油。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>油膜會擋住陽光和空氣，使魚、海藻等無法呼吸與生長。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 油分散劑能讓油分散成小油滴，方便細菌分解。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>可用吸油紙或舊布吸附，並請老師協助清理。</p></div>"}, {"id": 54, "title": "🦷 會變硬的魔法膠──補牙的祕密！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">說明：</b> 補牙材料中的單體含碳，屬於有機化合物。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為照光會啟動引發劑，使單體分子連結成網狀結構，<br>產生聚合反應而變硬。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 聚合後不可再加熱軟化，屬於熱固性聚合物。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>美甲膠（照UV燈固化）<br>3D列印光固化樹脂<br>紫外線修補膠</p></div>"}, {"id": 55, "title": "⚗️ 神奇的浮浮棒──測出水有多「鹹」！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「波美計是利用浮力原理測量液體密度。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>氣泡會讓波美計變輕，<br>浮得比應有的高度高，導致誤差。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">說明：</b> 鹽水濃度增加，密度變大，浮力變強，波美計會浮得更高。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>在鹽水中讓雞蛋漂浮實驗。<br>量蜂蜜或糖漿的濃度。<br>海水浮力比淡水強。</p></div>"}, {"id": 56, "title": "🌊 深海探險家的挑戰──身體裡的氣泡祕密！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「潛得越深，水壓越大。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為外界壓力突然降低，<br>血液中的氣體來不及釋放，<br>形成氣泡堵塞血管。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">說明：</b> 每下潛 10 公尺增加 1 個大氣壓，<br>海面 1 + 20 公尺（2 個）＝3 個大氣壓。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>汽水瓶打開時壓力變小，<br>二氧化碳迅速冒出，<br>就像潛水員上升太快時氣泡突然釋放。</p></div>"}, {"id": 57, "title": "👟 鞋底的秘密──抓地力的科學！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「地面濕滑會減少鞋底與地面的摩擦力。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>深紋路能排出地面的水或灰塵，<br>讓鞋底更容易接觸地面，摩擦力變大。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">說明：</b> 面積小壓力大，壓力 = 力 ÷ 面積。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>球鞋：紋路多，用於跑跳、增加抓地力。<br>皮鞋：紋路少，外觀整潔但容易滑。<br>雨鞋：溝槽深，排水效果好。</p></div>"}, {"id": 58, "title": "🚄 飛一般的速度──高鐵讓台灣變小了！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">說明：</b> 直達車停靠最少，行車時間最短。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為高鐵速度快，使人們可以在一天內往返南北兩地工作或遊玩。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p>計算：<br>340 ÷ 255 ≈ 1.33 小時 ≈ 1 小時 20 分鐘。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>學生可自由創意回答，如：<br>「從台南出發→嘉義→台中→台北，讓家人一起旅遊方便。」</p></div>"}, {"id": 59, "title": "🏢 電梯裡的魔法──為什麼我忽然變重又變輕？", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 電梯往上加速時，地板對人的推力增加，體重計讀數變大。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>電梯往下加速時，地板推力變小，所以人感覺變輕。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 加速度太大會讓血液集中或分散，造成不適。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>坐雲霄飛車加速下滑時會「心一沉」。<br>往上彈跳時感覺身體被壓下。</p></div>"}, {"id": 60, "title": "⚛️ 太陽的力量──核能到底能不能用？", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 地球上的核電廠是利用「核分裂」釋放能量。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>根據愛因斯坦的公式 E = mc²，<br>只要少量的質量消失，就能產生大量能量。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 核分裂釋放能量 → 轉為熱能 → 推動渦輪產生機械能 → 帶動發電機產生電能。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>支持再生能源（太陽能、風能、水力）。<br>節約用電，減少對核能與火力的依賴。<br>加強核電安全與廢料處理技術。</p></div>"}, {"id": 61, "title": "🚴‍♀️ 腳踏車的祕密──為什麼換檔會變輕鬆？", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">說明：</b> 腳踏車的變速系統主要利用齒輪大小不同，改變轉動速度與力量。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為前齒輪大、後齒輪小時，每踩一圈傳動距離變遠，速度快但需要較大力量。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 前小後大可放大力量、減少阻力，適合上坡。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>時鐘、汽車引擎、風車、玩具機器人等都用齒輪傳動。</p></div>"}, {"id": 62, "title": "👕 會發電的衣服──奈米發電機的祕密！", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「摩擦奈米發電機是以兩種材料摩擦起電的方式發電。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>不同材料接觸與分離時，電子會從一邊轉移到另一邊，<br>產生正電與負電，形成電位差。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：不會。</div><p class=\"n\"><b class=\"l\">說明：</b> 只有不同材質間電子轉移才會產生靜電，<br>相同材質摩擦不會有明顯電能。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>能靠摩擦充電的手套或鞋底。<br>運動包或書包上的小型發電片。<br>走路時發電的地板或樓梯。</p></div>"}, {"id": 63, "title": "🌎 大地變成泥漿？！──土壤液化的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「砂質地層 + 高地下水 + 強烈地震」為液化三要素。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>地震時地面劇烈搖晃，水被擠進砂粒之間，<br>讓砂粒漂浮起來，地層變軟。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：不會。</div><p class=\"n\"><b class=\"l\">說明：</b> 地下水少、地層緊密，水不易滲入砂粒間隙，因此不會液化。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>沿海低地（例：台南、彰化）容易液化；<br>山區岩層堅固（例：阿里山）較不易液化。</p></div>"}, {"id": 64, "title": "🪨 岩石奇幻國度──野柳的祕密風景", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「野柳的岩石是由風和海浪長期侵蝕形成。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因河流流速快慢不同，帶來的泥沙顆粒大小不同，<br>因此形成砂岩與頁岩交錯的地層。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：古代海底環境。</div><p class=\"n\"><b class=\"l\">說明：</b> 化石屬於海洋生物，代表當地曾經在海底沉積形成。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>河流侵蝕形成峽谷（如太魯閣）。<br>風力形成沙丘（如屏東車城）。<br>海浪形成海蝕洞（如象鼻岩）。</p></div>"}, {"id": 65, "title": "🌋 大屯火山的祕密──沉睡的巨人會再醒來嗎？", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「菲律賓海板塊隱沒到歐亞大陸板塊之下」。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為大屯火山地下仍有岩漿活動，且最後一次噴發在五、六千年前，<br>符合活火山的定義。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：地震活動、地表隆起、溫泉化學變化。</div></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>了解是否屬於火山地區。<br>觀察地熱、氣體變化。<br>關注科學單位的監測資訊。</p></div>"}, {"id": 66, "title": "🌌 夜空的祕密──星座和黃道十二宮", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b> 星座是把「視線方向相近」的星星連成圖形。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為太陽在白天經過那個星座方向，光太強，夜晚就看不到。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 太陽與我們能看到的夜空方向相反。太陽位在獅子座，夜晚能看到的就是對面的水瓶座。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>學生可選擇自己喜歡的星座並分享：<br>形狀（例如獅子座像皇冠）<br>季節（夏天、冬天出現）<br>故事（神話或文化意象）</p></div>"}, {"id": 67, "title": "🌠 會許願的星星──流星雨的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「彗星經過太陽時留下灰塵，地球經過時被吸進大氣層燃燒發光。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>滿月的光太亮，會讓微弱的流星光被掩蓋，看不清楚。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：不會。</div><p class=\"n\"><b class=\"l\">說明：</b> 流星雨發生在地球通過彗星軌道的特定時期，每年大約固定一次。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>遠離城市燈光、選無月亮的夜晚。<br>躺下觀看整個天空，耐心觀察。<br>夏季英仙座、冬季雙子座都是好選擇。</p></div>"}, {"id": 68, "title": "🔋 手機裡的小炸彈？──鋰離子電池的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「鋰離子電池被廣泛用於手機、筆電、行動電源與電動車。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>當電池受撞擊、變形或充電過久時，<br>會造成內部短路與溫度上升，<br>引發連鎖反應──熱失控。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　參考方向：</div><p>重壓可能讓電池內部變形或短路，導致過熱甚至起火。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考答案：</div><p>不長時間充電。<br>不讓電池暴露在高溫下。<br>定期檢查電池外觀是否異常。</p></div>"}, {"id": 69, "title": "📱 空氣中也能充電？──無線充電的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「利用線圈內磁場變化產生感應電流」<br>。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為磁場的力量會隨距離迅速減弱，<br>太遠時感應電流就變得太弱，無法有效充電。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　參考解答：</div><p>磁共振式需要特定頻率設計，技術困難、成本高，<br>因此還無法大量應用。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>可設計在桌面中央或椅子下方，<br>讓使用者只需把手機放上去就能充電，<br>同時確保距離夠近、傳輸效率高。</p></div>"}, {"id": 70, "title": "💿 會「記憶」的磁鐵──硬碟的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「磁場變化會在線圈中產生感應電流」<br>112國中自然3下素養Levelup-ch2魔術大空間-硬碟的…<br>。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>巨磁電阻材料能讓磁頭更靈敏，<br>訊號變化更明顯，因此磁區可縮小、資料更密集，<br>提升儲存容量。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　參考方向：</div><p>磁場感應變弱，感應電流不足，電腦就無法準確讀出資料。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>電磁爐（電生磁 → 熱）<br>電風扇（電生磁 → 轉動）<br>麥克風（聲波振動 → 感應電流）</p></div>"}, {"id": 71, "title": "🌬️ 山那邊的熱風──焚風的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「當空氣越過山頂在背風面下降時，會形成乾熱的風。」<br>112國中自然3下素養Levelup-ch3外面颳起大熱風—焚…</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>空氣下降時受到擠壓、溫度上升、濕度下降，<br>因此變得又乾又熱。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">B</span></div><p class=\"n\"><b class=\"l\">說明：</b> 當颱風中心通過臺灣北部時，西風吹過中央山脈，在臺東產生焚風。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>焚風可幫助曬乾農作物或衣物，<br>也能讓潮濕的地區暫時變乾爽。</p></div>"}, {"id": 72, "title": "🌫️ 灰濛濛的天空──是霧還是霾？", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「太陽升起後不會消失的是霾。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>霾由灰塵與汙染微粒組成，不是水滴，<br>因此不會因氣溫上升而蒸發。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　答案：<span class=\"ans\">C</span></div><p class=\"n\"><b class=\"l\">說明：</b> 紅燈代表空氣對所有族群不健康，應減少戶外活動。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>多搭大眾運輸，少開車<br>不亂燒垃圾<br>在家種綠色植物幫助淨化空氣</p></div>"}, {"id": 73, "title": "❄️ 這個冬天為什麼那麼冷？──北極振盪的祕密", "html": "<div class=\"qa\"><div class=\"qh\">第 1 題　答案：<span class=\"ans\">A</span></div><p class=\"n\"><b class=\"l\">關鍵語句：</b>「北極振盪指數為負值時，極區氣壓較高，中緯度氣壓較低。」</p></div>\n<div class=\"qa\"><div class=\"qh\">第 2 題　參考解答：</div><p>因為氣壓分布改變、噴流變弱，<br>北極的冷空氣容易往南移動，<br>導致台灣出現劇烈降溫與寒流。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 3 題　參考方向：</div><p>噴流變得不穩定、曲折，<br>冷空氣可能更常南下，<br>造成冬天極端低溫、夏天高溫與暴雨增加。</p></div>\n<div class=\"qa\"><div class=\"qh\">第 4 題　參考方向：</div><p>穿著保暖衣物、留意氣象警報；<br>檢查電暖器與防寒設備；<br>關心長輩與幼兒的健康狀況。</p></div>"}];
+let cur=0;
+const sel=document.getElementById('epSelect');
+const card=document.getElementById('epCard');
+const links=document.querySelectorAll('.sl');
+const hint=document.getElementById('swipeHint');
+
+function show(i){
+if(i<0||i>=EP.length)return;
+cur=i;
+const e=EP[i];
+card.innerHTML=`<span class="ep-label">第 ${i+1} 回</span><h2>${esc(e.title)}</h2>${e.html}`;
+sel.value=i;
+links.forEach((a,j)=>{a.classList.toggle('active',j===i)});
+// scroll sidebar active into view
+const act=document.querySelector('.sl.active');
+if(act)act.scrollIntoView({block:'nearest'});
+window.scrollTo({top:0});
+// hide hint after first nav
+if(hint)hint.style.display=i>0?'none':hint.style.display;
+}
+
+function esc(s){
+const d=document.createElement('div');d.textContent=s;return d.innerHTML;
+}
+
+sel.addEventListener('change',()=>show(+sel.value));
+document.getElementById('prevBtn').addEventListener('click',()=>show(cur-1));
+document.getElementById('nextBtn').addEventListener('click',()=>show(cur+1));
+
+links.forEach(a=>{
+a.addEventListener('click',ev=>{ev.preventDefault();show(+a.dataset.ep)});
 });
 
-// Highlight active menu item on scroll
-const sections = document.querySelectorAll('section.episode');
-const links = document.querySelectorAll('#menuList a');
-const observer = new IntersectionObserver((entries)=>{
-  entries.forEach(en=>{
-    if(en.isIntersecting){
-      const id = en.target.id;
-      links.forEach(a=>{
-        a.classList.toggle('active', a.getAttribute('href') === '#'+id);
-      });
-    }
-  });
-},{rootMargin:'-40% 0px -55% 0px'});
-sections.forEach(s=>observer.observe(s));
+// Keyboard nav
+document.addEventListener('keydown',e=>{
+if(e.key==='ArrowLeft')show(cur-1);
+if(e.key==='ArrowRight')show(cur+1);
+});
+
+// Touch swipe
+let tx=0;
+document.addEventListener('touchstart',e=>{tx=e.changedTouches[0].screenX},{passive:true});
+document.addEventListener('touchend',e=>{
+const dx=e.changedTouches[0].screenX-tx;
+if(Math.abs(dx)>60){dx>0?show(cur-1):show(cur+1)}
+},{passive:true});
+
+// Sidebar search
+document.getElementById('sbSearch').addEventListener('input',function(){
+const q=this.value.toLowerCase();
+links.forEach(a=>{a.style.display=(!q||a.textContent.toLowerCase().includes(q))?'':'none'});
+});
+
+show(0);
 </script>
 </body>
 </html>
